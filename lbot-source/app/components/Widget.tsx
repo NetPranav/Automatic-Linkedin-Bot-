@@ -3,6 +3,9 @@
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
+// ─── Backend URL (change this if your PC's IP changes) ───
+const BACKEND_URL = "http://192.168.29.224:8000";
+
 // ─── Types ───
 type SyncStatus = "Offline" | "Queued" | "Synced" | "AI Disconnected" | "Connected";
 
@@ -121,6 +124,7 @@ export default function Widget() {
   const [hasEdits, setHasEdits] = useState(false);
   const [pipelineStage, setPipelineStage] = useState<string | null>(null);
   const [currentGeneration, setCurrentGeneration] = useState<string | null>(null);
+  const [previewImageBlobs, setPreviewImageBlobs] = useState<Record<string, string>>({});
 
   // Track edits
   useEffect(() => {
@@ -131,6 +135,35 @@ export default function Widget() {
     }
   }, [previewText, previewDraft]);
 
+  // ─── Load preview images as blobs (fixes Capacitor/mobile image loading) ───
+  useEffect(() => {
+    if (!previewDraft?.suggested_images?.length) {
+      setPreviewImageBlobs({});
+      return;
+    }
+    const loadImages = async () => {
+      const blobs: Record<string, string> = {};
+      for (const url of previewDraft.suggested_images) {
+        try {
+          const res = await fetch(url);
+          const blob = await res.blob();
+          blobs[url] = URL.createObjectURL(blob);
+        } catch (e) {
+          console.error("Failed to load preview image:", url, e);
+        }
+      }
+      setPreviewImageBlobs(blobs);
+    };
+    loadImages();
+    // Cleanup blob URLs on unmount
+    return () => {
+      Object.values(previewImageBlobs).forEach((blobUrl) => {
+        try { URL.revokeObjectURL(blobUrl); } catch {}
+      });
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [previewDraft?.suggested_images]);
+
   // ─── Backend Connection & Draft Polling ───
   useEffect(() => {
     let isChecking = false;
@@ -138,14 +171,14 @@ export default function Widget() {
       if (isChecking) return;
       isChecking = true;
       try {
-        const healthRes = await fetch("http://192.168.29.224:8000/health", { cache: "no-store" });
+        const healthRes = await fetch(`${BACKEND_URL}/health`, { cache: "no-store" });
         if (healthRes.ok) {
           setSyncStatus((prev) => (prev === "Offline" || prev === "AI Disconnected" ? "Connected" : prev));
 
           // Poll for pending drafts if we don't already have one open
           setPreviewDraft((currentPreview) => {
             if (!currentPreview) {
-              fetch("http://192.168.29.224:8000/check-drafts", { cache: "no-store" })
+              fetch(`${BACKEND_URL}/check-drafts`, { cache: "no-store" })
                 .then(r => r.json())
                 .then(async data => {
                   if (data.pending_count > 0 && data.drafts && data.drafts.length > 0) {
@@ -195,7 +228,7 @@ export default function Widget() {
   useEffect(() => {
     const pollPipeline = async () => {
       try {
-        const res = await fetch("http://192.168.29.224:8000/pipeline-status", { cache: "no-store" });
+        const res = await fetch(`${BACKEND_URL}/pipeline-status`, { cache: "no-store" });
         if (res.ok) {
           const data = await res.json();
           if (data.processing_count > 0 && data.drafts.length > 0) {
@@ -359,7 +392,7 @@ export default function Widget() {
     };
 
     try {
-      const response = await fetch("http://192.168.29.224:8000/submit-raw", {
+      const response = await fetch(`${BACKEND_URL}/submit-raw`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
@@ -392,7 +425,7 @@ export default function Widget() {
     if (hasEdits) {
       // User changed text -> Send for rewrite
       try {
-        const res = await fetch(`http://192.168.29.224:8000/rewrite-draft/${previewDraft.id}`, {
+        const res = await fetch(`${BACKEND_URL}/rewrite-draft/${previewDraft.id}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ edited_text: previewText })
@@ -412,7 +445,7 @@ export default function Widget() {
     } else {
       // No changes -> Post to LinkedIn
       try {
-        const res = await fetch(`http://192.168.29.224:8000/approve-draft/${previewDraft.id}`, {
+        const res = await fetch(`${BACKEND_URL}/approve-draft/${previewDraft.id}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ final_text: previewText, selected_image_paths: [] }) // Add image selection logic later if needed
@@ -438,7 +471,7 @@ export default function Widget() {
     if (!previewDraft) return;
     setIsSubmitting(true);
     try {
-      await fetch(`http://192.168.29.224:8000/reject-draft/${previewDraft.id}`, {
+      await fetch(`${BACKEND_URL}/reject-draft/${previewDraft.id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ feedback: "User rejected from widget." })
@@ -738,12 +771,21 @@ export default function Widget() {
 
                 {previewDraft.suggested_images?.length > 0 && (
                   <div>
-                    <h3 className="text-[13px] font-medium mb-3 uppercase tracking-wider" style={{ color: "var(--text-tertiary)" }}>Attached Media</h3>
+                    <h3 className="text-[13px] font-medium mb-3 uppercase tracking-wider" style={{ color: "var(--text-tertiary)" }}>Attached Media ({previewDraft.suggested_images.length})</h3>
                     <div className="flex gap-4 overflow-x-auto pb-2">
                       {previewDraft.suggested_images.map((imgUrl, idx) => (
                         <div key={idx} className="relative w-40 h-40 flex-shrink-0 rounded-xl overflow-hidden border" style={{ borderColor: "rgba(255,255,255,0.08)" }}>
                           {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={imgUrl} alt="Preview" className="w-full h-full object-cover" />
+                          {previewImageBlobs[imgUrl] ? (
+                            <img src={previewImageBlobs[imgUrl]} alt={`Image ${idx + 1}`} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-white/5">
+                              <svg className="animate-spin w-5 h-5 text-white/30" viewBox="0 0 24 24" fill="none">
+                                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" opacity="0.3" />
+                                <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                              </svg>
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>

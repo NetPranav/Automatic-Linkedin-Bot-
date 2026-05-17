@@ -415,7 +415,8 @@ Analyze these inputs and create a content outline for a LinkedIn post.
 === VISION ANALYSIS ===
 {vision_summary}
 
-Write a detailed outline (Hook, Core Message, Call to Action)."""
+Write a detailed outline (Hook, Core Message, Call to Action).
+CRITICAL RULE: DO NOT write literal image names (like IMAGE_0_0) in the outline. Just reference the visual concepts.
     
     outline = await _call_api(planning_prompt, "text_planning")
     
@@ -434,22 +435,15 @@ Write the final LinkedIn post based on this outline and inputs.
 
 Write ONLY the final LinkedIn post content. 
 Make it highly engaging, use strategic line breaks, and maintain a professional yet authentic tone.
+CRITICAL RULE: DO NOT include any image placeholders, tags, or keys (like IMAGE_0_0) anywhere in the post text.
 Add these hashtags at the very end: {formatted_tags}"""
     
     generated_post = await _call_api(drafting_prompt, "text_drafting")
     
     # ---------------------------------------------------------
-    # PHASE 3: REVIEW & THUMBNAIL
+    # PHASE 3: REVIEW & ATTACHMENTS
     # ---------------------------------------------------------
-    logger.info("[STEP C.3] Review & Thumbnail...")
-    thumbnail_instruction = ""
-    if available_images_context:
-        thumbnail_instruction = """Review the post and select the best thumbnail.
-Write EXACTLY on a new line:
-SELECTED_THUMBNAIL: [image key]
-Example: SELECTED_THUMBNAIL: IMAGE_0_0"""
-    else:
-        thumbnail_instruction = "Since there are NO images available, DO NOT output a SELECTED_THUMBNAIL line."
+    logger.info("[STEP C.3] Review & Attachments...")
 
     review_prompt = f"""Review this LinkedIn post.
 
@@ -459,36 +453,13 @@ Example: SELECTED_THUMBNAIL: IMAGE_0_0"""
 === AVAILABLE IMAGES ===
 {images_list_text}
 
-1. {thumbnail_instruction}
-2. Provide a brief EXPLANATION of why this post is effective."""
+Provide a brief EXPLANATION of why this post is effective."""
 
     review_text = await _call_api(review_prompt, "text_reviewing")
 
-    # Extract thumbnail
-    suggested_image_paths = []
-    if "SELECTED_THUMBNAIL:" in review_text:
-        parts = review_text.split("SELECTED_THUMBNAIL:")
-        thumbnail_and_rest = parts[1].strip()
-        thumbnail_line = thumbnail_and_rest.split("\n")[0].strip()
-
-        try:
-            key_parts = thumbnail_line.replace("IMAGE_", "").split("_")
-            if len(key_parts) == 2:
-                link_idx = int(key_parts[0])
-                img_idx = int(key_parts[1])
-                if (link_idx < len(processed_image_links) and
-                        img_idx < len(processed_image_links[link_idx].image_paths)):
-                    selected_path = processed_image_links[link_idx].image_paths[img_idx]
-                    suggested_image_paths.append(selected_path)
-                    logger.info(f"[STEP C.3] AI selected thumbnail: {selected_path}")
-        except (ValueError, IndexError) as e:
-            logger.warning(f"[STEP C.3] Could not parse thumbnail selection '{thumbnail_line}': {e}")
-            if all_image_paths:
-                suggested_image_paths.append(all_image_paths[0])
-
-    if not suggested_image_paths and all_image_paths:
-        suggested_image_paths.append(all_image_paths[0])
-        logger.info(f"[STEP C.3] No thumbnail selected by AI, defaulting to first image.")
+    # The user wants to post ALL of the images they provided.
+    suggested_image_paths = all_image_paths
+    logger.info(f"[STEP C.3] Attached {len(suggested_image_paths)} images to the final post.")
 
     return generated_post, suggested_image_paths
 

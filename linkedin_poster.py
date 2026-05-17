@@ -43,16 +43,14 @@ def auto_post_to_linkedin(title: str, description: str, image_paths: List[str]):
         print(">> [PLAYWRIGHT] Navigating to LinkedIn feed...")
         page.goto("https://www.linkedin.com/feed/", wait_until="domcontentloaded")
         
-        # Check if we are actually logged in by looking for the "Start a post" trigger button
-        start_post_btn = page.locator(".share-box-feed-entry__trigger, button:has-text('Start a post'), span:has-text('Start a post')").first
-        
+        # Check if we are actually logged in by looking for the profile photo in the nav bar
         try:
-            start_post_btn.wait_for(state="visible", timeout=5000)
+            page.wait_for_selector(".global-nav__me-photo", state="visible", timeout=5000)
             is_logged_in = True
             print(">> [PLAYWRIGHT] Successfully verified LinkedIn login status.")
         except:
             is_logged_in = False
-            print(">> [PLAYWRIGHT] 'Start a post' button not found. User needs to log in.")
+            print(">> [PLAYWRIGHT] Profile not detected. User needs to log in.")
             
         if not is_logged_in:
             if headless_mode:
@@ -71,8 +69,8 @@ def auto_post_to_linkedin(title: str, description: str, image_paths: List[str]):
             print(">> I will wait here until you successfully log in...")
             print("=====================================================\n")
             
-            # Wait for the feed page to load (which means login success)
-            start_post_btn.wait_for(state="visible", timeout=300000) # 5 minutes
+            # Wait for the feed page to load and profile photo to appear (login success)
+            page.wait_for_selector(".global-nav__me-photo", state="visible", timeout=300000) # 5 minutes
             
             # Save the state for future headless runs
             context.storage_state(path=STATE_FILE)
@@ -85,7 +83,10 @@ def auto_post_to_linkedin(title: str, description: str, image_paths: List[str]):
         try:
             # 1. Click "Start a post"
             print(">> [PLAYWRIGHT] Clicking 'Start a post'...")
-            start_post_btn.click()
+            try:
+                page.locator(".share-box-feed-entry__trigger").first.click(timeout=5000)
+            except:
+                page.locator("button:has-text('Start a post'), button:has-text('Create a post')").first.click()
             
             # Wait for modal to appear
             modal = page.locator("div[role='dialog']")

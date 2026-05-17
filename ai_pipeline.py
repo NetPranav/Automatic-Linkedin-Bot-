@@ -285,6 +285,90 @@ Be detailed but professional. This description will be used to write a compellin
 
 
 # ============================================================
+# Shared NIM API Call (used by text model and rewrite pipeline)
+# ============================================================
+
+async def call_nim_api(session: aiohttp.ClientSession, prompt: str, stage_name: str, draft_id: str = None) -> str:
+    """
+    Calls the NVIDIA NIM API with streaming and saves progress to the draft.
+    This is a standalone function that can be used by any pipeline step.
+    """
+    if draft_id:
+        from database import get_draft, save_draft
+        d = get_draft(draft_id)
+        if d:
+            d.pipeline_stage = stage_name
+            d.current_generation = ""
+            save_draft(d)
+
+    payload = {
+        "model": settings.nvidia_nim_model,
+        "messages": [{"role": "user", "content": prompt}],
+        "stream": True,
+        "max_tokens": 1024,
+        "temperature": 0.7,
+        "top_p": 0.9
+    }
+    
+    headers = {
+        "Authorization": f"Bearer {settings.nvidia_nim_api_key}",
+        "Content-Type": "application/json"
+    }
+    
+    full_response = ""
+    final_content = ""
+    last_save_time = time.time()
+    
+    try:
+        async with session.post(
+            "https://integrate.api.nvidia.com/v1/chat/completions",
+            json=payload,
+            headers=headers,
+            timeout=aiohttp.ClientTimeout(total=300)
+        ) as response:
+            if response.status != 200:
+                error_text = await response.text()
+                raise Exception(f"NIM API returned {response.status}: {error_text}")
+            
+            async for line in response.content:
+                if line:
+                    line_text = line.decode('utf-8').strip()
+                    if not line_text or line_text == "data: [DONE]":
+                        continue
+                        
+                    if line_text.startswith("data: "):
+                        try:
+                            data = json.loads(line_text[6:])
+                            chunk = data.get("choices", [{}])[0].get("delta", {}).get("content", "")
+                            
+                            if chunk:
+                                full_response += chunk
+                                final_content += chunk
+                                
+                            if draft_id and time.time() - last_save_time > 0.5:
+                                from database import get_draft, save_draft
+                                d = get_draft(draft_id)
+                                if d:
+                                    d.current_generation = full_response
+                                    save_draft(d)
+                                last_save_time = time.time()
+                        except json.JSONDecodeError:
+                            continue
+    except asyncio.TimeoutError:
+        raise Exception("NIM API timed out after 300 seconds")
+        
+    # Final save to ensure UI gets 100% of the stream
+    if draft_id:
+        from database import get_draft, save_draft
+        d = get_draft(draft_id)
+        if d:
+            d.current_generation = full_response
+            save_draft(d)
+            
+    return final_content
+
+
+# ============================================================
 # Step C: Text Model Processing
 # ============================================================
 
@@ -330,93 +414,19 @@ async def run_text_model(
 
     formatted_tags = " ".join([f"#{tag}" for tag in tags])
 
+    # Helper that delegates to the standalone function
     async def _call_api(prompt: str, stage_name: str) -> str:
-        if draft_id:
-            from database import get_draft, save_draft
-            d = get_draft(draft_id)
-            if d:
-                d.pipeline_stage = stage_name
-                d.current_generation = ""
-                save_draft(d)
-
-        payload = {
-            "model": settings.nvidia_nim_model,
-            "messages": [{"role": "user", "content": prompt}],
-            "stream": True,
-            "max_tokens": 1024,
-            "temperature": 0.7,
-            "top_p": 0.9
-        }
-        
-        headers = {
-            "Authorization": f"Bearer {settings.nvidia_nim_api_key}",
-            "Content-Type": "application/json"
-        }
-        
-        full_response = ""
-        final_content = ""
-        last_save_time = time.time()
-        
-        try:
-            async with session.post(
-                "https://integrate.api.nvidia.com/v1/chat/completions",
-                json=payload,
-                headers=headers,
-                timeout=aiohttp.ClientTimeout(total=300)
-            ) as response:
-                if response.status != 200:
-                    error_text = await response.text()
-                    raise Exception(f"Text model returned {response.status}: {error_text}")
-                
-                async for line in response.content:
-                    if line:
-                        line_text = line.decode('utf-8').strip()
-                        if not line_text or line_text == "data: [DONE]":
-                            continue
-                            
-                        if line_text.startswith("data: "):
-                            try:
-                                data = json.loads(line_text[6:])
-                                chunk = data.get("choices", [{}])[0].get("delta", {}).get("content", "")
-                                
-                                if chunk:
-                                    full_response += chunk
-                                    final_content += chunk
-                                    
-                                if draft_id and time.time() - last_save_time > 0.5:
-                                    from database import get_draft, save_draft
-                                    d = get_draft(draft_id)
-                                    if d:
-                                        d.current_generation = full_response
-                                        save_draft(d)
-                                    last_save_time = time.time()
-                            except json.JSONDecodeError:
-                                continue
-        except asyncio.TimeoutError:
-            raise Exception("Text model timed out after 300 seconds")
-            
-        # Final save to ensure UI gets 100% of the stream
-        if draft_id:
-            from database import get_draft, save_draft
-            d = get_draft(draft_id)
-            if d:
-                d.current_generation = full_response
-                save_draft(d)
-                
-        return final_content
+        return await call_nim_api(session, prompt, stage_name, draft_id)
 
     # ---------------------------------------------------------
     # PHASE 1: PLANNING
     # ---------------------------------------------------------
     logger.info("[STEP C.1] Generating Outline...")
-    planning_prompt = f"""You are an elite LinkedIn ghostwriter who creates viral, high-engagement posts.
+    planning_prompt = f"""You are a skilled LinkedIn content writer.
 
 === CURRENT DATE & TIME ===
 Today is {current_datetime}.
-If the user mentions events like "yesterday", "2 days ago", "last week", "this weekend", etc., 
-calculate the ACTUAL date and incorporate it naturally. For example:
-- "won a hackathon yesterday" → "won at [Hackathon Name] on {(now - __import__('datetime').timedelta(days=1)).strftime('%B %d')}" 
-- "last weekend" → reference the actual dates
+If the user mentions events like "yesterday", "2 days ago", "last week", calculate the ACTUAL date.
 
 === RAW NOTES FROM USER ===
 {raw_text}
@@ -427,16 +437,16 @@ calculate the ACTUAL date and incorporate it naturally. For example:
 === USER'S HASHTAGS ===
 {formatted_tags}
 
-Create a strategic content outline with:
-1. **Hook** (first 2 lines) - Must be scroll-stopping. Use a bold claim, surprising stat, or emotional trigger.
-2. **Core Story** - The main narrative arc. What happened? What was the challenge? What was learned?
-3. **Insight / Takeaway** - The actionable lesson that makes readers think "I need to save this."
-4. **Call to Action** - A question or invitation that drives comments.
+Create a content outline with:
+1. **Hook** - An engaging opening that captures attention
+2. **Core Story** - What happened, what was the experience
+3. **Takeaway** - What was learned or what's valuable for readers
+4. **CTA** - A natural question or conversation starter
 
-IMPORTANT RULES:
-- NEVER use literal image keys like IMAGE_0_0 in your outline.
-- Reference visual elements naturally (e.g., "the team photo", "the dashboard screenshot").
-- Think about what time-sensitive context would make this post more relevant (e.g., trending topics, current events).
+IMPORTANT:
+- Stay FAITHFUL to what the user actually wrote. Do NOT exaggerate or over-hype.
+- If they got 2nd place, say 2nd place. If they participated, say participated. Be honest.
+- NEVER use literal image keys like IMAGE_0_0.
 """
     
     outline = await _call_api(planning_prompt, "text_planning")
@@ -445,44 +455,44 @@ IMPORTANT RULES:
     # PHASE 2: DRAFTING
     # ---------------------------------------------------------
     logger.info("[STEP C.2] Drafting Post...")
-    drafting_prompt = f"""You are an elite LinkedIn content creator. Your posts consistently get 10x engagement.
+    drafting_prompt = f"""You are a skilled LinkedIn content writer.
 
 === CURRENT DATE & TIME ===
 Today is {current_datetime} ({day_of_week}).
-Use this to make temporal references accurate. If the user said "yesterday", "2 days ago", etc., 
-calculate and use the real date.
+Use this to make temporal references accurate.
 
 === RAW NOTES FROM USER ===
 {raw_text}
 
-=== YOUR STRATEGIC OUTLINE ===
+=== YOUR OUTLINE ===
 {outline}
 
 === IMAGE CONTEXT ===
 {vision_summary}
 
-Write the FINAL LinkedIn post. Follow these rules:
+Write the FINAL LinkedIn post based on the user's notes and your outline.
 
 **FORMAT:**
-- Start with a powerful 1-2 line hook that makes people stop scrolling
-- Use short paragraphs (1-3 sentences max)
+- Start with a strong 1-2 line hook
+- Use short paragraphs (1-3 sentences)
 - Add strategic line breaks for readability
-- Use bullet points or numbered lists when sharing multiple insights
-- End with a thought-provoking question or clear CTA
+- End with a question or conversation starter
 - Place hashtags on the VERY LAST LINE: {formatted_tags}
 
 **TONE:**
-- Professional but authentic — write like a human, not a corporate bot
-- Confident but not arrogant
-- Conversational — use "I", "we", "you"
-- Add personality — it's okay to show excitement, surprise, or vulnerability
+- Authentic and conversational — write like a real person sharing their experience
+- Confident but grounded — do NOT exaggerate or over-hype
+- Use "I", "we", "you" naturally
 
-**ABSOLUTE RULES:**
-- NEVER include image placeholders, keys, or tags (like IMAGE_0_0) in the text
-- NEVER start with "I'm excited to share" or "I'm thrilled to announce" (overused)
-- NEVER use corporate buzzwords like "synergy", "leverage", "paradigm shift"
-- DO NOT add emojis unless the user's notes already used them
-- Output ONLY the final post text. No commentary, no explanations, no "Here's the post:"
+**CRITICAL ACCURACY RULES:**
+- Stay 100% FAITHFUL to the user's actual notes. Do NOT exaggerate achievements.
+- If they got 2nd place, write 2nd place. Do NOT say "we revolutionized" or "we changed the game".
+- If they participated in something, describe it accurately — don't inflate it.
+- Use the user's own words and energy level as your guide.
+- NEVER include image placeholders or keys (like IMAGE_0_0)
+- NEVER start with "I'm excited to share" or "I'm thrilled to announce"
+- DO NOT add emojis unless the user's notes used them
+- Output ONLY the final post text. No commentary.
 """
     
     generated_post = await _call_api(drafting_prompt, "text_drafting")
@@ -492,21 +502,24 @@ Write the FINAL LinkedIn post. Follow these rules:
     # ---------------------------------------------------------
     logger.info("[STEP C.3] Polishing...")
 
-    review_prompt = f"""You are a LinkedIn copy editor. Review and POLISH this post.
+    review_prompt = f"""You are a copy editor. Polish this LinkedIn post.
 
-=== DRAFT TO POLISH ===
+=== DRAFT ===
 {generated_post}
 
-=== TODAY'S DATE ===
+=== TODAY ===
 {current_datetime}
 
+=== USER'S ORIGINAL NOTES (for accuracy check) ===
+{raw_text}
+
 Your job:
-1. Fix any grammatical errors or awkward phrasing
-2. Verify temporal references are accurate ("yesterday" should match the real date)
-3. Ensure the hook is scroll-stopping
-4. Make sure line breaks create good visual rhythm
+1. Fix grammar and awkward phrasing
+2. Verify temporal references are accurate
+3. VERIFY the post does not exaggerate the user's achievements. Compare against their original notes.
+4. Make sure line breaks create good readability
 5. Verify hashtags are at the very end
-6. Remove ANY literal image tags like IMAGE_0_0 if they exist
+6. Remove ANY literal image tags like IMAGE_0_0
 
 Output ONLY the final polished post. No commentary."""
 
@@ -705,7 +718,8 @@ Do NOT add emojis unless the user used them. Do NOT start with clichés.
 NEVER include image placeholders like IMAGE_0_0.
 Output ONLY the final post text — no commentary."""
 
-        new_text = await _call_api(prompt, "text_generating", draft)
+        async with aiohttp.ClientSession() as session:
+            new_text = await call_nim_api(session, prompt, "text_generating", draft_id)
 
         draft.generated_post_text = new_text
         draft.status = DraftStatus.AWAITING_APPROVAL

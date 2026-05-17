@@ -43,8 +43,8 @@ def auto_post_to_linkedin(title: str, description: str, image_paths: List[str]):
         print(">> [PLAYWRIGHT] Navigating to LinkedIn feed...")
         page.goto("https://www.linkedin.com/feed/", wait_until="domcontentloaded")
         
-        # Check if we are actually logged in by looking for "Start a post"
-        start_post_btn = page.locator("button:has-text('Start a post'), span:has-text('Start a post')").first
+        # Check if we are actually logged in by looking for the "Start a post" trigger button
+        start_post_btn = page.locator(".share-box-feed-entry__trigger, button:has-text('Start a post'), span:has-text('Start a post')").first
         
         try:
             start_post_btn.wait_for(state="visible", timeout=5000)

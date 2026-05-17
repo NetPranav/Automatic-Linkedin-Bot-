@@ -1,0 +1,11 @@
+venv/
+__pycache__/
+*.pyc
+.env
+linkedin_state.json
+drafts.db
+linkedin_bot.db
+uploads/
+startup_log.txt
+*.zip
+playwright_error.png

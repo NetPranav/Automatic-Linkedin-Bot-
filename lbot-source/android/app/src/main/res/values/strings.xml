@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">lbot</string>
+    <string name="title_activity_main">lbot</string>
+    <string name="package_name">com.lbot.app</string>
+    <string name="custom_url_scheme">com.lbot.app</string>
+</resources>

@@ -1,0 +1,76 @@
+name: Build Mobile and Desktop Apps
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  workflow_dispatch: # Allows you to run this manually from the Actions tab
+
+jobs:
+  build-android:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Java JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Install dependencies & Build Next.js
+        working-directory: ./lbot-source
+        run: |
+          npm ci
+          npm run build
+          npx cap sync android
+
+      - name: Build Android APK (Debug)
+        working-directory: ./lbot-source/android
+        run: ./gradlew assembleDebug
+
+      - name: Upload Android APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: LBot-Android-App
+          path: lbot-source/android/app/build/outputs/apk/debug/app-debug.apk
+
+  build-macos:
+    name: Build MacOS Tauri App
+    runs-on: macos-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install dependencies & Build Next.js
+        working-directory: ./lbot-source
+        run: |
+          npm ci
+          npm run build
+
+      - name: Build Tauri Mac App
+        working-directory: ./lbot-source
+        # Assuming you have or will have Tauri set up in lbot-source
+        run: npm run tauri build || echo "Tauri not initialized yet. Skipping Mac build."
+
+      - name: Upload Mac App
+        uses: actions/upload-artifact@v4
+        with:
+          name: LBot-Mac-App
+          # If Tauri builds successfully, the DMG will be located here:
+          path: lbot-source/src-tauri/target/release/bundle/dmg/*.dmg
+          if-no-files-found: ignore

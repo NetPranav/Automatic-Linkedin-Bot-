@@ -307,6 +307,12 @@ async def run_text_model(
     """
     logger.info(f"[STEP C] Starting text model: {settings.nvidia_nim_model} (Multi-Step Pipeline)")
 
+    # Current date/time context for temporal awareness
+    from datetime import datetime as dt
+    now = dt.now()
+    current_datetime = now.strftime("%A, %B %d, %Y at %I:%M %p")
+    day_of_week = now.strftime("%A")
+
     # Build context about which images are available
     available_images_context = []
     all_image_paths = []
@@ -403,20 +409,35 @@ async def run_text_model(
     # PHASE 1: PLANNING
     # ---------------------------------------------------------
     logger.info("[STEP C.1] Generating Outline...")
-    planning_prompt = f"""You are an expert LinkedIn strategist.
-Analyze these inputs and create a content outline for a LinkedIn post.
+    planning_prompt = f"""You are an elite LinkedIn ghostwriter who creates viral, high-engagement posts.
+
+=== CURRENT DATE & TIME ===
+Today is {current_datetime}.
+If the user mentions events like "yesterday", "2 days ago", "last week", "this weekend", etc., 
+calculate the ACTUAL date and incorporate it naturally. For example:
+- "won a hackathon yesterday" → "won at [Hackathon Name] on {(now - __import__('datetime').timedelta(days=1)).strftime('%B %d')}" 
+- "last weekend" → reference the actual dates
 
 === RAW NOTES FROM USER ===
 {raw_text}
 
-=== AVAILABLE IMAGES ===
-{images_list_text}
-
-=== VISION ANALYSIS ===
+=== IMAGE CONTEXT (from vision analysis) ===
 {vision_summary}
 
-Write a detailed outline (Hook, Core Message, Call to Action).
-CRITICAL RULE: DO NOT write literal image names (like IMAGE_0_0) in the outline. Just reference the visual concepts.
+=== USER'S HASHTAGS ===
+{formatted_tags}
+
+Create a strategic content outline with:
+1. **Hook** (first 2 lines) - Must be scroll-stopping. Use a bold claim, surprising stat, or emotional trigger.
+2. **Core Story** - The main narrative arc. What happened? What was the challenge? What was learned?
+3. **Insight / Takeaway** - The actionable lesson that makes readers think "I need to save this."
+4. **Call to Action** - A question or invitation that drives comments.
+
+IMPORTANT RULES:
+- NEVER use literal image keys like IMAGE_0_0 in your outline.
+- Reference visual elements naturally (e.g., "the team photo", "the dashboard screenshot").
+- Think about what time-sensitive context would make this post more relevant (e.g., trending topics, current events).
+"""
     
     outline = await _call_api(planning_prompt, "text_planning")
     
@@ -424,44 +445,81 @@ CRITICAL RULE: DO NOT write literal image names (like IMAGE_0_0) in the outline.
     # PHASE 2: DRAFTING
     # ---------------------------------------------------------
     logger.info("[STEP C.2] Drafting Post...")
-    drafting_prompt = f"""You are an expert LinkedIn content creator.
-Write the final LinkedIn post based on this outline and inputs.
+    drafting_prompt = f"""You are an elite LinkedIn content creator. Your posts consistently get 10x engagement.
+
+=== CURRENT DATE & TIME ===
+Today is {current_datetime} ({day_of_week}).
+Use this to make temporal references accurate. If the user said "yesterday", "2 days ago", etc., 
+calculate and use the real date.
 
 === RAW NOTES FROM USER ===
 {raw_text}
 
-=== OUTLINE ===
+=== YOUR STRATEGIC OUTLINE ===
 {outline}
 
-Write ONLY the final LinkedIn post content. 
-Make it highly engaging, use strategic line breaks, and maintain a professional yet authentic tone.
-CRITICAL RULE: DO NOT include any image placeholders, tags, or keys (like IMAGE_0_0) anywhere in the post text.
-Add these hashtags at the very end: {formatted_tags}"""
+=== IMAGE CONTEXT ===
+{vision_summary}
+
+Write the FINAL LinkedIn post. Follow these rules:
+
+**FORMAT:**
+- Start with a powerful 1-2 line hook that makes people stop scrolling
+- Use short paragraphs (1-3 sentences max)
+- Add strategic line breaks for readability
+- Use bullet points or numbered lists when sharing multiple insights
+- End with a thought-provoking question or clear CTA
+- Place hashtags on the VERY LAST LINE: {formatted_tags}
+
+**TONE:**
+- Professional but authentic — write like a human, not a corporate bot
+- Confident but not arrogant
+- Conversational — use "I", "we", "you"
+- Add personality — it's okay to show excitement, surprise, or vulnerability
+
+**ABSOLUTE RULES:**
+- NEVER include image placeholders, keys, or tags (like IMAGE_0_0) in the text
+- NEVER start with "I'm excited to share" or "I'm thrilled to announce" (overused)
+- NEVER use corporate buzzwords like "synergy", "leverage", "paradigm shift"
+- DO NOT add emojis unless the user's notes already used them
+- Output ONLY the final post text. No commentary, no explanations, no "Here's the post:"
+"""
     
     generated_post = await _call_api(drafting_prompt, "text_drafting")
     
     # ---------------------------------------------------------
-    # PHASE 3: REVIEW & ATTACHMENTS
+    # PHASE 3: POLISH & CLEANUP
     # ---------------------------------------------------------
-    logger.info("[STEP C.3] Review & Attachments...")
+    logger.info("[STEP C.3] Polishing...")
 
-    review_prompt = f"""Review this LinkedIn post.
+    review_prompt = f"""You are a LinkedIn copy editor. Review and POLISH this post.
 
-=== GENERATED POST ===
+=== DRAFT TO POLISH ===
 {generated_post}
 
-=== AVAILABLE IMAGES ===
-{images_list_text}
+=== TODAY'S DATE ===
+{current_datetime}
 
-Provide a brief EXPLANATION of why this post is effective."""
+Your job:
+1. Fix any grammatical errors or awkward phrasing
+2. Verify temporal references are accurate ("yesterday" should match the real date)
+3. Ensure the hook is scroll-stopping
+4. Make sure line breaks create good visual rhythm
+5. Verify hashtags are at the very end
+6. Remove ANY literal image tags like IMAGE_0_0 if they exist
 
-    review_text = await _call_api(review_prompt, "text_reviewing")
+Output ONLY the final polished post. No commentary."""
+
+    polished_post = await _call_api(review_prompt, "text_reviewing")
+
+    # Use polished version if it's reasonable, otherwise fall back to draft
+    final_post = polished_post if len(polished_post.strip()) > 50 else generated_post
 
     # The user wants to post ALL of the images they provided.
     suggested_image_paths = all_image_paths
     logger.info(f"[STEP C.3] Attached {len(suggested_image_paths)} images to the final post.")
 
-    return generated_post, suggested_image_paths
+    return final_post, suggested_image_paths
 
 
 # ============================================================
@@ -625,9 +683,12 @@ async def rewrite_ai_pipeline(draft_id: str, edited_text: str):
         draft.pipeline_stage = "text_generating"
         save_draft(draft)
 
-        prompt = f"""You are an expert LinkedIn content creator.
-The user has reviewed your previous draft and provided an edited version or feedback.
-Your task is to refine and finalize the draft incorporating their changes.
+        prompt = f"""You are an elite LinkedIn content creator.
+The user reviewed your previous draft and made edits or provided feedback.
+Your task is to produce a refined, polished version that incorporates their changes.
+
+=== CURRENT DATE & TIME ===
+Today is {datetime.now().strftime('%A, %B %d, %Y at %I:%M %p')}.
 
 === ORIGINAL RAW NOTES ===
 {draft.raw_text}
@@ -638,8 +699,11 @@ Your task is to refine and finalize the draft incorporating their changes.
 === USER'S EDITED DRAFT / FEEDBACK ===
 {edited_text}
 
-Rewrite the post so it is perfectly polished for LinkedIn. 
-Maintain the user's intent and tone from their edits. DO NOT include any commentary, just output the final post."""
+Rewrite the post so it is perfectly polished for LinkedIn.
+Maintain the user's intent, tone, and any specific changes they made.
+Do NOT add emojis unless the user used them. Do NOT start with clichés.
+NEVER include image placeholders like IMAGE_0_0.
+Output ONLY the final post text — no commentary."""
 
         new_text = await _call_api(prompt, "text_generating", draft)
 

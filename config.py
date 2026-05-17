@@ -22,6 +22,8 @@ class Settings(BaseSettings):
     linkedin_client_secret: str = Field(..., env="LINKEDIN_CLIENT_SECRET")
     linkedin_access_token: str = Field(..., env="LINKEDIN_ACCESS_TOKEN")
     linkedin_person_urn: str = Field(..., env="LINKEDIN_PERSON_URN")
+    linkedin_email: str = Field(default="", env="LINKEDIN_EMAIL")
+    linkedin_password: str = Field(default="", env="LINKEDIN_PASSWORD")
 
     # --- NVIDIA NIM Configuration ---
     nvidia_nim_api_key: str = Field(..., env="NVIDIA_NIM_API_KEY")

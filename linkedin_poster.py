@@ -23,12 +23,21 @@ def _attempt_login(page, context):
     Fills in LinkedIn email/password from .env and submits.
     Returns True if login succeeded, False otherwise.
     """
-    email = settings.linkedin_email
-    password = settings.linkedin_password
+    # Try config first, fallback to reading .env directly
+    import os
+    try:
+        from dotenv import load_dotenv
+        load_dotenv(override=True)
+    except ImportError:
+        pass
+
+    email = os.environ.get("LINKEDIN_EMAIL", "") or getattr(settings, "linkedin_email", "")
+    password = os.environ.get("LINKEDIN_PASSWORD", "") or getattr(settings, "linkedin_password", "")
 
     if not email or not password or "your_" in email:
         print(">> [PLAYWRIGHT ERROR] LinkedIn credentials not set in .env!")
         print(">> Please set LINKEDIN_EMAIL and LINKEDIN_PASSWORD in your .env file.")
+        print(f">> (Debug: email loaded = '{email[:3]}***' )" if email else ">> (Debug: email is EMPTY)")
         return False
 
     print(f">> [PLAYWRIGHT] Auto-logging in as {email}...")

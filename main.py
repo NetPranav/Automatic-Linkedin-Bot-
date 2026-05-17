@@ -725,18 +725,24 @@ async def post_draft_to_linkedin(draft_id: str):
             )
         )
 
-        # Update draft with details
-        draft.linkedin_post_id = "automation_success"
-        draft.linkedin_post_url = "https://www.linkedin.com/in/me/recent-activity/shares/"
-        draft.status = DraftStatus.POSTED
-        draft.updated_at = datetime.utcnow()
-        save_draft(draft)
+        # Update draft based on actual result
+        if success:
+            draft.linkedin_post_id = "automation_success"
+            draft.linkedin_post_url = "https://www.linkedin.com/in/me/recent-activity/shares/"
+            draft.status = DraftStatus.POSTED
+            draft.updated_at = datetime.utcnow()
+            save_draft(draft)
 
-        logger.info(
-            f"[LINKEDIN POST] ✅ Successfully posted to LinkedIn! "
-            f"Draft: {draft_id}, Post ID: {draft.linkedin_post_id}"
-        )
-        logger.info(f"[LINKEDIN POST] View post at: {draft.linkedin_post_url}")
+            logger.info(
+                f"[LINKEDIN POST] ✅ Successfully posted to LinkedIn! "
+                f"Draft: {draft_id}"
+            )
+        else:
+            logger.error(f"[LINKEDIN POST] ❌ Playwright returned failure: {message}")
+            draft.status = DraftStatus.FAILED
+            draft.error_message = f"LinkedIn posting failed: {message}"
+            draft.updated_at = datetime.utcnow()
+            save_draft(draft)
 
     except Exception as e:
         logger.error(

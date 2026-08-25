@@ -5,16 +5,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ProjectDraft } from "../lib/types";
 import { PlusIcon, TrashIcon, CheckIcon, SendIcon, ClockIcon, FolderProjectsIcon } from "./Icons";
 
-// Local helper ClockIcon if needed
-function Clock({ className = "w-4 h-4" }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <circle cx="12" cy="12" r="10" />
-      <polyline points="12 6 12 12 16 14" />
-    </svg>
-  );
-}
-
 interface Props {
   projects: ProjectDraft[];
   activeProjectId?: string;
@@ -213,7 +203,7 @@ export default function ProjectQueueManager({
 
                       <div className="flex items-center gap-3 mt-1 text-[10px]">
                         <span className={`flex items-center gap-1 ${isLightMode ? "text-slate-400" : "text-white/30"}`}>
-                          <Clock className="w-3 h-3" /> {dateStr}
+                          <ClockIcon className="w-3 h-3" /> {dateStr}
                         </span>
                         {p.tags.length > 0 && (
                           <span className={isLightMode ? "text-indigo-600 font-medium" : "text-indigo-400 font-medium"}>

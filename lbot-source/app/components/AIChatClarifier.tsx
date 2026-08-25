@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React from "react";
+import { motion } from "framer-motion";
 import { ClarificationQuestion } from "../lib/types";
 import { SparklesIcon, CheckIcon, HelpCircleIcon, RefreshCwIcon } from "./Icons";
 
@@ -22,8 +22,6 @@ export default function AIChatClarifier({
   onApplyAndGenerate,
   isLightMode,
 }: Props) {
-  const [activeTab, setActiveTab] = useState<string>(questions[0]?.id || "q1");
-
   const answeredCount = questions.filter(
     (q) => Boolean(q.selectedAnswer) || Boolean(q.customAnswer?.trim())
   ).length;

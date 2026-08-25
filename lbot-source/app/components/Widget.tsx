@@ -22,6 +22,7 @@ import {
   saveProject,
   deleteProject,
   markProjectStatus,
+  generateUUID,
 } from "../lib/storage";
 import {
   generatePostDirect,
@@ -43,8 +44,6 @@ import {
   ImageIcon,
   PlusIcon,
   TrashIcon,
-  RefreshCwIcon,
-  RocketIcon,
 } from "./Icons";
 
 export default function Widget() {
@@ -54,7 +53,7 @@ export default function Widget() {
   const isLightMode = settings.theme === "minimal-light";
 
   // ─── Active Project & Editor State ───
-  const [currentProjectId, setCurrentProjectId] = useState<string>(crypto.randomUUID());
+  const [currentProjectId, setCurrentProjectId] = useState<string>(generateUUID());
   const [projectTitle, setProjectTitle] = useState("Untitled Post");
   const [rawText, setRawText] = useState("");
   const [tags, setTags] = useState<string[]>([]);
@@ -224,7 +223,7 @@ export default function Widget() {
       setActiveLinkForUpload(existing.id);
     } else {
       const newLink: TextImageLink = {
-        id: crypto.randomUUID(),
+        id: generateUUID(),
         text: selectionRange.text,
         startIndex: selectionRange.start,
         endIndex: selectionRange.end,
@@ -245,7 +244,7 @@ export default function Widget() {
       const reader = new FileReader();
       reader.onload = (ev) => {
         const attachment: ImageAttachment = {
-          id: crypto.randomUUID(),
+          id: generateUUID(),
           url: ev.target?.result as string,
           name: file.name,
           size: file.size,
@@ -269,7 +268,7 @@ export default function Widget() {
       const reader = new FileReader();
       reader.onload = (ev) => {
         const attachment: ImageAttachment = {
-          id: crypto.randomUUID(),
+          id: generateUUID(),
           url: ev.target?.result as string,
           name: file.name,
           size: file.size,
@@ -367,7 +366,7 @@ export default function Widget() {
   // ─── Project Management ───
   const handleStartNewProject = () => {
     clearActiveDraft();
-    setCurrentProjectId(crypto.randomUUID());
+    setCurrentProjectId(generateUUID());
     setProjectTitle("Untitled Post");
     setRawText("");
     setTags([]);

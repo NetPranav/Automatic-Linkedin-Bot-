@@ -4,6 +4,13 @@ const DRAFTS_KEY = "lbot_project_drafts_v2";
 const ACTIVE_DRAFT_KEY = "lbot_active_draft_v2";
 const SETTINGS_KEY = "lbot_app_settings_v2";
 
+export function generateUUID(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return "id_" + Math.random().toString(36).substring(2, 11) + "_" + Date.now();
+}
+
 export const DEFAULT_SETTINGS: AppSettings = {
   aiProvider: "auto",
   geminiApiKey: "",
@@ -65,7 +72,7 @@ export function saveActiveDraft(draft: Partial<ActiveDraftState>): void {
   if (typeof window === "undefined") return;
   try {
     const current = getStoredActiveDraft() || {
-      id: crypto.randomUUID(),
+      id: generateUUID(),
       title: "Untitled Draft",
       rawText: "",
       tags: [],

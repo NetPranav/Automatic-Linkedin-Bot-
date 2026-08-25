@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AppSettings, SyncStatus } from "../lib/types";
 import { SettingsIcon, CheckIcon, CloseIcon, RefreshCwIcon } from "./Icons";
@@ -27,6 +27,10 @@ export default function SettingsDrawer({
   const [form, setForm] = useState<AppSettings>(settings);
   const [testing, setTesting] = useState(false);
   const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    setForm(settings);
+  }, [settings, isOpen]);
 
   const handleSave = () => {
     onSaveSettings(form);

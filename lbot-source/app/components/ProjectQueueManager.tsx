@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ProjectDraft } from "../lib/types";
-import { PlusIcon, TrashIcon, CheckIcon, SendIcon, ClockIcon, FolderProjectsIcon } from "./Icons";
+import { PlusIcon, TrashIcon, ClockIcon, FolderProjectsIcon } from "./Icons";
 
 interface Props {
   projects: ProjectDraft[];

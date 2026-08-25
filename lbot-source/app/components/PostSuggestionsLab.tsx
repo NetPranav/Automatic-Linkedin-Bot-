@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { PostSuggestions } from "../lib/types";
-import { LightbulbIcon, SparklesIcon, CheckIcon, RocketIcon } from "./Icons";
+import { LightbulbIcon, RocketIcon } from "./Icons";
 
 interface Props {
   suggestions: PostSuggestions | null;

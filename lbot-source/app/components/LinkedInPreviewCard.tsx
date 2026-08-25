@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { AppSettings, ImageAttachment } from "../lib/types";
+import { AppSettings } from "../lib/types";
 import { CopyIcon, CheckIcon, ShareIcon, SendIcon, LinkedInLogo } from "./Icons";
 
 interface Props {

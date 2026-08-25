@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AppSettings } from "../lib/types";
-import { CopyIcon, CheckIcon, ShareIcon, SendIcon, LinkedInLogo } from "./Icons";
+import { CopyIcon, CheckIcon, ShareIcon, LinkedInLogo } from "./Icons";
 
 interface Props {
   postText: string;
@@ -59,10 +59,10 @@ export default function LinkedInPreviewCard({
     setLikeCount((prev) => (isLiked ? prev - 1 : prev + 1));
   };
 
-  // Truncation logic for "...see more"
+  // Truncation logic
   const lines = postText.split("\n");
-  const shouldTruncate = lines.length > 5 || postText.length > 280;
-  const displayText = !isExpanded && shouldTruncate ? lines.slice(0, 4).join("\n") : postText;
+  const shouldTruncate = lines.length > 6 || postText.length > 320;
+  const displayText = !isExpanded && shouldTruncate ? lines.slice(0, 5).join("\n") : postText;
 
   const initials = settings.authorName
     .split(" ")
@@ -72,26 +72,22 @@ export default function LinkedInPreviewCard({
     .toUpperCase();
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="flex flex-col gap-4"
-    >
-      {/* ─── The Realistic LinkedIn Post Card ─── */}
+    <div className="w-full flex flex-col gap-3">
+      {/* ─── The Authentic LinkedIn Card ─── */}
       <div
-        className={`rounded-3xl border transition-all duration-300 overflow-hidden ${
+        className={`rounded-2xl border transition-all overflow-hidden ${
           isLightMode
-            ? "bg-white border-slate-200/90 shadow-xl shadow-slate-200/60 text-slate-900"
-            : "bg-[#1b1f24] border-white/[0.1] shadow-2xl shadow-black/80 text-white/95"
+            ? "bg-white border-slate-200/90 shadow-md text-slate-900"
+            : "bg-[#1b1f24] border-white/[0.1] shadow-xl text-white/95"
         }`}
       >
-        {/* Card Header */}
-        <div className="p-4 sm:p-5 flex items-start justify-between">
-          <div className="flex items-center gap-3">
-            <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-sm overflow-hidden shrink-0 border ${
+        {/* Post Header */}
+        <div className="p-3.5 sm:p-4 flex items-start justify-between gap-2">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className={`w-11 h-11 rounded-full flex items-center justify-center font-bold text-xs overflow-hidden shrink-0 border ${
               isLightMode
-                ? "bg-gradient-to-br from-slate-100 to-slate-200 text-slate-800 border-slate-300 shadow-sm"
-                : "bg-gradient-to-br from-indigo-500 via-purple-600 to-cyan-500 text-white border-white/20 shadow-md"
+                ? "bg-slate-100 text-slate-800 border-slate-300 shadow-sm"
+                : "bg-gradient-to-br from-indigo-500 to-purple-600 text-white border-white/20"
             }`}>
               {settings.authorAvatarUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -101,21 +97,21 @@ export default function LinkedInPreviewCard({
               )}
             </div>
 
-            <div className="flex flex-col">
-              <div className="flex items-center gap-1.5">
-                <span className="font-bold text-[14.5px] leading-tight text-inherit">
+            <div className="flex flex-col min-w-0">
+              <div className="flex items-center gap-1">
+                <span className="font-bold text-[13.5px] leading-tight text-inherit truncate">
                   {settings.authorName || "Your Name"}
                 </span>
-                <span className={`text-[11px] font-normal ${isLightMode ? "text-slate-400" : "text-white/40"}`}>
+                <span className={`text-[11px] shrink-0 ${isLightMode ? "text-slate-400" : "text-white/40"}`}>
                   • 1st
                 </span>
               </div>
-              <span className={`text-[11.5px] leading-tight line-clamp-1 max-w-[220px] sm:max-w-[340px] mt-0.5 ${
+              <span className={`text-[11px] leading-tight line-clamp-1 mt-0.5 ${
                 isLightMode ? "text-slate-500" : "text-white/60"
               }`}>
                 {settings.authorHeadline || "AI Engineer & Software Innovator"}
               </span>
-              <div className={`flex items-center gap-1 text-[10px] mt-1 ${
+              <div className={`flex items-center gap-1 text-[10px] mt-0.5 ${
                 isLightMode ? "text-slate-400" : "text-white/40"
               }`}>
                 <span>Just now</span>
@@ -127,7 +123,7 @@ export default function LinkedInPreviewCard({
             </div>
           </div>
 
-          <button className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 border transition-all cursor-pointer ${
+          <button className={`px-2.5 py-1 rounded-full text-[11px] font-bold shrink-0 border transition-all cursor-pointer ${
             isLightMode
               ? "text-[#0a66c2] border-[#0a66c2]/30 hover:bg-blue-50"
               : "text-blue-400 border-blue-500/30 hover:bg-blue-500/10"
@@ -136,16 +132,16 @@ export default function LinkedInPreviewCard({
           </button>
         </div>
 
-        {/* Post Text Content */}
-        <div className="px-4 sm:px-5 pb-4">
-          <p className="text-[13.5px] sm:text-[14.5px] leading-relaxed whitespace-pre-wrap font-normal select-text">
+        {/* Post Text Body */}
+        <div className="px-3.5 sm:px-4 pb-3">
+          <p className="text-[13px] sm:text-[14px] leading-relaxed whitespace-pre-wrap font-normal select-text">
             {displayText}
           </p>
 
           {shouldTruncate && (
             <button
               onClick={() => setIsExpanded(!isExpanded)}
-              className={`text-xs font-bold mt-1.5 transition-colors cursor-pointer ${
+              className={`text-xs font-bold mt-1 transition-colors cursor-pointer ${
                 isLightMode ? "text-slate-500 hover:text-slate-900" : "text-white/50 hover:text-white"
               }`}
             >
@@ -159,7 +155,7 @@ export default function LinkedInPreviewCard({
           <div className={`border-t border-b overflow-hidden ${
             isLightMode ? "border-slate-100 bg-slate-50" : "border-white/[0.06] bg-black/40"
           }`}>
-            <div className={`grid gap-1 ${
+            <div className={`grid gap-0.5 ${
               images.length === 1 ? "grid-cols-1" : images.length === 2 ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-3"
             }`}>
               {images.map((imgUrl, i) => (
@@ -172,10 +168,10 @@ export default function LinkedInPreviewCard({
                   <img
                     src={imgUrl}
                     alt={`Attachment ${i + 1}`}
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
-                    <span className="opacity-0 group-hover:opacity-100 text-white text-[11px] font-bold bg-black/70 px-3 py-1.5 rounded-xl backdrop-blur-md transition-opacity">
+                    <span className="opacity-0 group-hover:opacity-100 text-white text-[10px] font-bold bg-black/70 px-2 py-1 rounded-lg">
                       🔍 Tap to Zoom
                     </span>
                   </div>
@@ -185,30 +181,30 @@ export default function LinkedInPreviewCard({
           </div>
         )}
 
-        {/* Reaction Stats */}
-        <div className={`px-4 sm:px-5 py-2.5 border-b flex items-center justify-between text-[11px] ${
+        {/* Engagement Stats */}
+        <div className={`px-3.5 sm:px-4 py-2 border-b flex items-center justify-between text-[11px] ${
           isLightMode ? "border-slate-100 text-slate-500" : "border-white/[0.06] text-white/50"
         }`}>
           <div className="flex items-center gap-1.5">
             <span className="flex items-center -space-x-1">
-              <span className="w-4 h-4 rounded-full bg-blue-600 text-white flex items-center justify-center text-[8px] shadow-sm">👍</span>
-              <span className="w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-[8px] shadow-sm">❤️</span>
-              <span className="w-4 h-4 rounded-full bg-amber-500 text-white flex items-center justify-center text-[8px] shadow-sm">💡</span>
+              <span className="w-3.5 h-3.5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[7px]">👍</span>
+              <span className="w-3.5 h-3.5 rounded-full bg-red-500 text-white flex items-center justify-center text-[7px]">❤️</span>
+              <span className="w-3.5 h-3.5 rounded-full bg-amber-500 text-white flex items-center justify-center text-[7px]">💡</span>
             </span>
             <span className="font-semibold">{likeCount}</span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 text-[10.5px]">
             <span>12 comments</span>
             <span>•</span>
             <span>4 reposts</span>
           </div>
         </div>
 
-        {/* Authentic Reaction Action Buttons */}
-        <div className="px-2 py-1.5 grid grid-cols-4 gap-1">
+        {/* Reactions Action Bar */}
+        <div className="px-1 py-1 grid grid-cols-4 gap-0.5 text-center">
           <button
             onClick={handleLikeToggle}
-            className={`py-2 rounded-xl flex items-center justify-center gap-1.5 text-xs font-semibold transition-colors cursor-pointer ${
+            className={`py-1.5 rounded-lg flex items-center justify-center gap-1 text-xs font-semibold cursor-pointer ${
               isLiked
                 ? "text-[#0a66c2] bg-blue-50/60 font-bold"
                 : isLightMode
@@ -216,82 +212,76 @@ export default function LinkedInPreviewCard({
                   : "hover:bg-white/[0.06] text-white/60"
             }`}
           >
-            <span>{isLiked ? "👍" : "👍"}</span>
-            <span className="hidden sm:inline">{isLiked ? "Liked" : "Like"}</span>
+            <span>👍</span>
+            <span className="text-[11px]">{isLiked ? "Liked" : "Like"}</span>
           </button>
 
-          <button className={`py-2 rounded-xl flex items-center justify-center gap-1.5 text-xs font-semibold transition-colors cursor-pointer ${
+          <button className={`py-1.5 rounded-lg flex items-center justify-center gap-1 text-xs font-semibold cursor-pointer ${
             isLightMode ? "hover:bg-slate-100 text-slate-600" : "hover:bg-white/[0.06] text-white/60"
           }`}>
             <span>💬</span>
-            <span className="hidden sm:inline">Comment</span>
+            <span className="text-[11px]">Comment</span>
           </button>
 
-          <button className={`py-2 rounded-xl flex items-center justify-center gap-1.5 text-xs font-semibold transition-colors cursor-pointer ${
+          <button className={`py-1.5 rounded-lg flex items-center justify-center gap-1 text-xs font-semibold cursor-pointer ${
             isLightMode ? "hover:bg-slate-100 text-slate-600" : "hover:bg-white/[0.06] text-white/60"
           }`}>
             <span>🔁</span>
-            <span className="hidden sm:inline">Repost</span>
+            <span className="text-[11px]">Repost</span>
           </button>
 
-          <button className={`py-2 rounded-xl flex items-center justify-center gap-1.5 text-xs font-semibold transition-colors cursor-pointer ${
+          <button className={`py-1.5 rounded-lg flex items-center justify-center gap-1 text-xs font-semibold cursor-pointer ${
             isLightMode ? "hover:bg-slate-100 text-slate-600" : "hover:bg-white/[0.06] text-white/60"
           }`}>
             <span>🚀</span>
-            <span className="hidden sm:inline">Send</span>
+            <span className="text-[11px]">Send</span>
           </button>
         </div>
       </div>
 
-      {/* ─── Bottom Actions Bar ─── */}
-      <div className="flex flex-wrap items-center justify-between gap-3 p-1">
-        <div className="flex items-center gap-2">
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+      {/* ─── Floating Action Dock ─── */}
+      <div className="flex flex-col sm:flex-row gap-2 pt-1">
+        <div className="flex items-center gap-2 flex-1">
+          <button
             onClick={handleCopy}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold border transition-all cursor-pointer ${
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
               copied
-                ? "bg-emerald-500 text-white border-emerald-500 shadow-lg shadow-emerald-500/25"
+                ? "bg-emerald-500 text-white border-emerald-500"
                 : isLightMode
                   ? "bg-white hover:bg-slate-50 text-slate-800 border-slate-200 shadow-sm"
                   : "bg-white/[0.05] hover:bg-white/[0.08] text-white border-white/[0.08]"
             }`}
           >
-            {copied ? <CheckIcon className="w-4 h-4" /> : <CopyIcon className="w-4 h-4" />}
-            {copied ? "Copied Post Text!" : "Copy Post Text"}
-          </motion.button>
+            {copied ? <CheckIcon className="w-3.5 h-3.5" /> : <CopyIcon className="w-3.5 h-3.5" />}
+            {copied ? "Copied!" : "Copy Post"}
+          </button>
 
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+          <button
             onClick={handleNativeShare}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold border transition-all cursor-pointer ${
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
               isLightMode
                 ? "bg-white hover:bg-slate-50 text-slate-800 border-slate-200 shadow-sm"
                 : "bg-white/[0.05] hover:bg-white/[0.08] text-white border-white/[0.08]"
             }`}
           >
-            <ShareIcon className="w-4 h-4" />
-            Share / Open App
-          </motion.button>
+            <ShareIcon className="w-3.5 h-3.5" />
+            Share / Open
+          </button>
         </div>
 
         {onApproveAndPost && (
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+          <button
             onClick={onApproveAndPost}
             disabled={isSubmitting}
-            className={`flex items-center gap-2 px-6 py-2.5 rounded-2xl text-xs font-bold text-white shadow-xl transition-all cursor-pointer ${
+            className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-bold text-white shadow-md transition-all cursor-pointer ${
               isSubmitting
                 ? "opacity-50 cursor-not-allowed bg-slate-500"
-                : "bg-gradient-to-r from-[#0a66c2] to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-blue-600/30"
+                : "bg-gradient-to-r from-[#0a66c2] to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
             }`}
           >
             <LinkedInLogo className="w-4 h-4" />
-            {isSubmitting ? "Publishing via PC..." : "Approve & Publish to LinkedIn"}
-          </motion.button>
+            {isSubmitting ? "Publishing..." : "Approve & Publish"}
+          </button>
         )}
       </div>
 
@@ -305,12 +295,12 @@ export default function LinkedInPreviewCard({
             onClick={() => setSelectedImage(null)}
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-xl"
           >
-            <div className="relative max-w-4xl max-h-[85vh] overflow-hidden rounded-3xl border border-white/20 shadow-2xl">
+            <div className="relative max-w-4xl max-h-[85vh] overflow-hidden rounded-2xl border border-white/20 shadow-2xl">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={selectedImage} alt="Zoomed preview" className="w-full h-full object-contain" />
               <button
                 onClick={() => setSelectedImage(null)}
-                className="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/70 text-white flex items-center justify-center text-sm font-bold border border-white/20 hover:scale-110 transition-transform"
+                className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/70 text-white flex items-center justify-center text-xs font-bold border border-white/20"
               >
                 ✕
               </button>
@@ -318,6 +308,6 @@ export default function LinkedInPreviewCard({
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.div>
+    </div>
   );
 }

@@ -69,7 +69,7 @@ export function CopyIcon({ className = "w-4 h-4" }: { className?: string }) {
 
 export function CheckIcon({ className = "w-4 h-4" }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
       <polyline points="20 6 9 17 4 12" />
     </svg>
   );
@@ -155,15 +155,6 @@ export function SendIcon({ className = "w-4 h-4" }: { className?: string }) {
   );
 }
 
-export function ArrowRightIcon({ className = "w-4 h-4" }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M5 12h14" />
-      <path d="m12 5 7 7-7 7" />
-    </svg>
-  );
-}
-
 export function CloseIcon({ className = "w-4 h-4" }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -181,4 +172,3 @@ export function ClockIcon({ className = "w-4 h-4" }: { className?: string }) {
     </svg>
   );
 }
-

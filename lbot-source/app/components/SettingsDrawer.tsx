@@ -38,7 +38,7 @@ export default function SettingsDrawer({
     setTimeout(() => {
       setSaved(false);
       onClose();
-    }, 800);
+    }, 600);
   };
 
   const handleTest = async () => {
@@ -50,224 +50,181 @@ export default function SettingsDrawer({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-md p-0 sm:p-4">
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 15 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 15 }}
-            className={`relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl border p-6 shadow-2xl ${
-              isLightMode
-                ? "bg-white border-slate-200 text-slate-900"
-                : "bg-[#12131a] border-white/[0.1] text-white"
-            }`}
+            initial={{ opacity: 0, y: 100 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 100 }}
+            className={`w-full sm:max-w-lg rounded-t-3xl sm:rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] shadow-2xl overflow-hidden max-h-[90vh] flex flex-col`}
           >
-            {/* Header */}
-            <div className="flex items-center justify-between pb-4 border-b border-inherit mb-4">
-              <div className="flex items-center gap-2">
-                <div className={`p-2 rounded-xl ${isLightMode ? "bg-indigo-50 text-indigo-600" : "bg-indigo-500/10 text-indigo-400"}`}>
-                  <SettingsIcon className="w-5 h-5" />
+            {/* Modal Header */}
+            <div className="p-4 sm:p-5 border-b border-[var(--border-subtle)] flex items-center justify-between gap-3 shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-indigo-500/15 text-indigo-500 flex items-center justify-center font-bold">
+                  <SettingsIcon className="w-4 h-4" />
                 </div>
-                <div>
-                  <h3 className="text-base font-bold tracking-tight">App Configuration & AI Setup</h3>
-                  <p className={`text-xs ${isLightMode ? "text-slate-500" : "text-white/40"}`}>
-                    Configure AI keys, themes, and author profile
-                  </p>
-                </div>
+                <h3 className="text-sm sm:text-base font-bold text-[var(--text-primary)]">
+                  App Settings & AI Engine
+                </h3>
               </div>
+
               <button
                 onClick={onClose}
-                className={`p-1.5 rounded-lg transition-colors ${
-                  isLightMode ? "hover:bg-slate-100 text-slate-400" : "hover:bg-white/10 text-white/40"
-                }`}
+                className="p-1.5 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] transition-colors cursor-pointer"
               >
                 <CloseIcon className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="flex flex-col gap-4 text-xs">
-              {/* Theme Selector */}
+            {/* Scrollable Form Body */}
+            <div className="p-4 sm:p-5 overflow-y-auto flex flex-col gap-4 flex-1">
+              {/* Theme Picker */}
               <div>
-                <label className="font-semibold block mb-1.5">Visual Design & Theme</label>
-                <div className="grid grid-cols-2 gap-2">
+                <label className="text-xs font-bold text-[var(--text-primary)] block mb-2">
+                  Theme Appearance:
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
                   {[
-                    { id: "minimal-light", label: "Classic Minimal White" },
-                    { id: "gemini-aurora", label: "Gemini Luminous Aurora" },
-                    { id: "nvidia-cyber", label: "NVIDIA Cyber Emerald" },
-                    { id: "deep-dark", label: "Deep Obsidian Stealth" },
+                    { id: "minimal-light", label: "Studio Light", preview: "bg-white text-slate-800" },
+                    { id: "gemini-aurora", label: "Gemini Aurora", preview: "bg-[#0f1123] text-indigo-300" },
+                    { id: "nvidia-cyber", label: "NVIDIA Cyber", preview: "bg-[#09100c] text-emerald-400" },
+                    { id: "deep-dark", label: "Deep Obsidian", preview: "bg-black text-white" },
                   ].map((t) => (
                     <button
                       key={t.id}
-                      type="button"
                       onClick={() => setForm({ ...form, theme: t.id as any })}
-                      className={`p-2.5 rounded-xl border text-left font-medium transition-all ${
+                      className={`p-2.5 rounded-xl border text-xs font-semibold flex flex-col items-center gap-1 transition-all cursor-pointer ${
                         form.theme === t.id
-                          ? isLightMode
-                            ? "bg-indigo-50 border-indigo-600 text-indigo-700 shadow-sm"
-                            : "bg-indigo-500/15 border-indigo-500 text-white shadow"
-                          : isLightMode
-                            ? "bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-700"
-                            : "bg-white/[0.03] hover:bg-white/[0.06] border-white/[0.08] text-white/70"
-                      }`}
+                          ? "border-indigo-500 ring-2 ring-indigo-500/30"
+                          : "border-[var(--border-subtle)] hover:border-slate-400"
+                      } ${t.preview}`}
                     >
-                      {t.label}
+                      <span>{t.label}</span>
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* AI Provider Strategy */}
+              {/* AI Engine Choice */}
               <div>
-                <label className="font-semibold block mb-1.5">AI Generation Engine</label>
-                <select
-                  value={form.aiProvider}
-                  onChange={(e) => setForm({ ...form, aiProvider: e.target.value as any })}
-                  className={`w-full p-2.5 rounded-xl border outline-none font-medium ${
-                    isLightMode
-                      ? "bg-slate-50 border-slate-200 text-slate-800 focus:border-indigo-500"
-                      : "bg-black/40 border-white/[0.1] text-white focus:border-indigo-500"
-                  }`}
-                >
-                  <option value="auto">Auto-Smart (Gemini 2.5/2.0 Flash → NVIDIA NIM Fallback)</option>
-                  <option value="gemini">Google Gemini Direct (2.0 Flash / 1.5 Pro)</option>
-                  <option value="nvidia">NVIDIA NIM Direct (Llama 3.2 90B Vision)</option>
-                  <option value="local_backend">Local PC Server Only (FastAPI)</option>
-                </select>
+                <label className="text-xs font-bold text-[var(--text-primary)] block mb-2">
+                  Primary AI Generation Engine:
+                </label>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {[
+                    { id: "auto", label: "Smart Auto", desc: "Gemini + NIM Fallback" },
+                    { id: "gemini", label: "Gemini Direct", desc: "Google Flash 2.0 / 1.5" },
+                    { id: "nvidia", label: "NVIDIA NIM", desc: "Llama 3.2 90B Vision" },
+                  ].map((p) => (
+                    <button
+                      key={p.id}
+                      onClick={() => setForm({ ...form, aiProvider: p.id as any })}
+                      className={`p-2.5 rounded-xl border text-xs font-bold transition-all text-center cursor-pointer ${
+                        form.aiProvider === p.id
+                          ? "bg-indigo-600 text-white border-indigo-600 shadow-sm"
+                          : "border-[var(--border-subtle)] bg-[var(--bg-input)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                      }`}
+                    >
+                      <div className="truncate">{p.label}</div>
+                      <div className="text-[9px] font-normal opacity-75 truncate">{p.desc}</div>
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* Gemini API Key */}
               <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="font-semibold">Google Gemini API Key</label>
-                  <a
-                    href="https://aistudio.google.com/app/apikey"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-[10px] text-indigo-500 hover:underline"
-                  >
-                    Get Free Key →
-                  </a>
-                </div>
+                <label className="text-xs font-bold text-[var(--text-primary)] block mb-1">
+                  Google Gemini API Key (Optional):
+                </label>
                 <input
                   type="password"
-                  placeholder="AIzaSy..."
                   value={form.geminiApiKey}
                   onChange={(e) => setForm({ ...form, geminiApiKey: e.target.value })}
-                  className={`w-full p-2.5 rounded-xl border outline-none font-mono ${
-                    isLightMode
-                      ? "bg-slate-50 border-slate-200 text-slate-800"
-                      : "bg-black/40 border-white/[0.1] text-white"
-                  }`}
+                  placeholder="AIzaSy... (leave blank to use system default)"
+                  className="w-full px-3.5 py-2 rounded-xl text-xs outline-none border border-[var(--border-subtle)] bg-[var(--bg-input)] text-[var(--text-primary)] placeholder-[var(--text-placeholder)] focus:border-indigo-500"
                 />
               </div>
 
-              {/* NVIDIA NIM Key */}
+              {/* NVIDIA NIM API Key */}
               <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="font-semibold">NVIDIA NIM API Key</label>
-                  <a
-                    href="https://build.nvidia.com"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-[10px] text-indigo-500 hover:underline"
-                  >
-                    Get NVIDIA Key →
-                  </a>
-                </div>
+                <label className="text-xs font-bold text-[var(--text-primary)] block mb-1">
+                  NVIDIA NIM API Key:
+                </label>
                 <input
                   type="password"
-                  placeholder="nvapi-..."
                   value={form.nvidiaApiKey}
                   onChange={(e) => setForm({ ...form, nvidiaApiKey: e.target.value })}
-                  className={`w-full p-2.5 rounded-xl border outline-none font-mono ${
-                    isLightMode
-                      ? "bg-slate-50 border-slate-200 text-slate-800"
-                      : "bg-black/40 border-white/[0.1] text-white"
-                  }`}
+                  placeholder="nvapi-..."
+                  className="w-full px-3.5 py-2 rounded-xl text-xs outline-none border border-[var(--border-subtle)] bg-[var(--bg-input)] text-[var(--text-primary)] placeholder-[var(--text-placeholder)] focus:border-indigo-500"
                 />
               </div>
 
-              {/* PC Backend URL */}
+              {/* PC Backend Sync URL */}
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <label className="font-semibold">Local PC Backend URL</label>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                    syncStatus === "Connected"
-                      ? "bg-emerald-500/10 text-emerald-500"
-                      : "bg-amber-500/10 text-amber-500"
+                  <label className="text-xs font-bold text-[var(--text-primary)]">
+                    Local PC Backend URL:
+                  </label>
+                  <span className={`text-[10px] font-bold ${
+                    syncStatus === "Connected" ? "text-emerald-500" : "text-amber-500"
                   }`}>
-                    {syncStatus}
+                    {syncStatus === "Connected" ? "● Connected" : "● Standalone / Offline"}
                   </span>
                 </div>
                 <div className="flex gap-2">
                   <input
                     type="text"
-                    placeholder="http://192.168.x.x:8000"
                     value={form.backendUrl}
                     onChange={(e) => setForm({ ...form, backendUrl: e.target.value })}
-                    className={`flex-1 p-2.5 rounded-xl border outline-none font-mono ${
-                      isLightMode
-                        ? "bg-slate-50 border-slate-200 text-slate-800"
-                        : "bg-black/40 border-white/[0.1] text-white"
-                    }`}
+                    placeholder="http://192.168.x.x:8000"
+                    className="flex-1 px-3.5 py-2 rounded-xl text-xs outline-none border border-[var(--border-subtle)] bg-[var(--bg-input)] text-[var(--text-primary)] placeholder-[var(--text-placeholder)] focus:border-indigo-500"
                   />
                   <button
                     onClick={handleTest}
                     disabled={testing}
-                    className={`px-3 rounded-xl border text-xs font-semibold flex items-center gap-1 shrink-0 ${
-                      isLightMode ? "bg-slate-100 hover:bg-slate-200 text-slate-700" : "bg-white/10 hover:bg-white/15 text-white"
-                    }`}
+                    className="px-3 py-2 rounded-xl text-xs font-bold border border-[var(--border-subtle)] bg-[var(--bg-elevated)] text-[var(--text-primary)] cursor-pointer shrink-0"
                   >
                     <RefreshCwIcon className={`w-3.5 h-3.5 ${testing ? "animate-spin" : ""}`} />
-                    Test
                   </button>
                 </div>
               </div>
 
-              {/* Author Profile Settings */}
-              <div className="border-t border-inherit pt-3">
-                <label className="font-semibold block mb-2">Author Profile (LinkedIn Mockup)</label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  <div>
-                    <span className={`text-[10px] block mb-1 ${isLightMode ? "text-slate-500" : "text-white/40"}`}>Display Name</span>
-                    <input
-                      type="text"
-                      value={form.authorName}
-                      onChange={(e) => setForm({ ...form, authorName: e.target.value })}
-                      className={`w-full p-2 rounded-lg border outline-none ${
-                        isLightMode ? "bg-slate-50 border-slate-200 text-slate-800" : "bg-black/40 border-white/[0.1] text-white"
-                      }`}
-                    />
-                  </div>
-                  <div>
-                    <span className={`text-[10px] block mb-1 ${isLightMode ? "text-slate-500" : "text-white/40"}`}>Headline / Tagline</span>
-                    <input
-                      type="text"
-                      value={form.authorHeadline}
-                      onChange={(e) => setForm({ ...form, authorHeadline: e.target.value })}
-                      className={`w-full p-2 rounded-lg border outline-none ${
-                        isLightMode ? "bg-slate-50 border-slate-200 text-slate-800" : "bg-black/40 border-white/[0.1] text-white"
-                      }`}
-                    />
-                  </div>
-                </div>
+              {/* Author Profile */}
+              <div className="p-3.5 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-input)] flex flex-col gap-2.5">
+                <span className="text-xs font-bold text-[var(--text-primary)]">
+                  Author Profile Customization:
+                </span>
+                <input
+                  type="text"
+                  value={form.authorName}
+                  onChange={(e) => setForm({ ...form, authorName: e.target.value })}
+                  placeholder="Your Full Name"
+                  className="w-full px-3 py-1.5 rounded-lg text-xs outline-none border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-primary)]"
+                />
+                <input
+                  type="text"
+                  value={form.authorHeadline}
+                  onChange={(e) => setForm({ ...form, authorHeadline: e.target.value })}
+                  placeholder="Your LinkedIn Headline"
+                  className="w-full px-3 py-1.5 rounded-lg text-xs outline-none border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-primary)]"
+                />
               </div>
             </div>
 
-            {/* Footer Actions */}
-            <div className="flex items-center justify-end gap-2 mt-6 pt-4 border-t border-inherit">
+            {/* Modal Actions */}
+            <div className="p-4 border-t border-[var(--border-subtle)] flex items-center justify-end gap-2 shrink-0 bg-[var(--bg-surface)] pb-notch">
               <button
                 onClick={onClose}
-                className={`px-4 py-2 rounded-xl text-xs font-semibold ${
-                  isLightMode ? "text-slate-600 hover:bg-slate-100" : "text-white/60 hover:bg-white/10"
-                }`}
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSave}
-                className="px-5 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-600/25 flex items-center gap-1.5"
+                className="flex items-center gap-1.5 px-5 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-md cursor-pointer"
               >
-                {saved && <CheckIcon className="w-3.5 h-3.5" />}
+                {saved ? <CheckIcon className="w-4 h-4" /> : null}
                 {saved ? "Saved!" : "Save Settings"}
               </button>
             </div>

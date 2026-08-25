@@ -1,0 +1,33 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Secrets & Local Config
+.env
+linkedin_state.json
+drafts.db
+linkedin_bot.db
+uploads/
+
+# Debug files & Screenshots
+startup_log.txt
+*.log
+crash.txt
+latest_crash.txt
+after_click.html
+after_click.png
+feed_debug.png
+feed_html.txt
+playwright_error.png
+playwright_crash_debug.png
+login_error.png
+*.zip
+
+# Node & Next.js
+node_modules/
+.next/
+out/
+.DS_Store

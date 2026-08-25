@@ -1,0 +1,85 @@
+name: Build and Release Mobile App
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-android:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Java JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '21'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Frontend Dependencies & Build Static Assets
+        working-directory: ./lbot-source
+        run: |
+          npm install
+          npm run build
+          npx cap sync android
+
+      - name: Make Gradlew Executable
+        working-directory: ./lbot-source/android
+        run: chmod +x ./gradlew
+
+      - name: Build Android Debug APK
+        working-directory: ./lbot-source/android
+        run: ./gradlew assembleDebug --stacktrace
+
+      - name: Rename APK for Easy Identification
+        run: |
+          mkdir -p build-output
+          cp lbot-source/android/app/build/outputs/apk/debug/app-debug.apk build-output/LinkedIn-AI-Studio-Mobile.apk
+
+      - name: Upload Android APK as Action Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: LinkedIn-AI-Studio-Android-APK
+          path: build-output/LinkedIn-AI-Studio-Mobile.apk
+          retention-days: 30
+
+      - name: Create or Update GitHub Release (Direct Download)
+        uses: softprops/action-gh-release@v2
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        with:
+          tag_name: mobile-latest
+          name: "LinkedIn AI Studio - Latest Mobile Build"
+          body: |
+            ## 📱 LinkedIn AI Studio Mobile App (Direct Download)
+            
+            This is the latest automated build of the mobile app.
+            
+            ### ✨ Features Included:
+            - **100% Standalone AI Generation**: Direct Google Gemini & NVIDIA NIM support on mobile (no PC connection required).
+            - **AI Clarification & Interview**: Proactive questions to extract viral hooks and quantifiable metrics.
+            - **Optimization Lab**: 1-tap hook switcher, CTA enhancers, tone morpher, and virality breakdown.
+            - **Realistic LinkedIn Mockup**: Live feed preview card with image carousel and 1-tap copy/share.
+            - **Projects & Queue Manager**: Auto-saved drafts and sending queue.
+            - **Minimal Classic White & Aurora/Cyber Themes**.
+            
+            ### ⬇️ Download:
+            Download `LinkedIn-AI-Studio-Mobile.apk` directly on your Android phone and install.
+          files: build-output/LinkedIn-AI-Studio-Mobile.apk
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

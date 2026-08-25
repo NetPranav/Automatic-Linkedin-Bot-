@@ -1,17 +1,18 @@
 @import "tailwindcss";
 
-/* ─── Global Design Tokens ─── */
+/* ─── Luxury Design Tokens ─── */
 :root {
-  /* Minimal Classic Light (Default Default) */
-  --bg-app: #f8fafc;
+  /* Minimal Classic Luxury Light (Apple / Linear aesthetic) */
+  --bg-app: #f6f8fb;
   --bg-surface: #ffffff;
-  --bg-card: #ffffff;
+  --bg-card: rgba(255, 255, 255, 0.85);
   --bg-elevated: #f1f5f9;
   --bg-input: #f8fafc;
+  --bg-glass: rgba(255, 255, 255, 0.7);
 
-  --border-subtle: #e2e8f0;
-  --border-hover: #cbd5e1;
-  --border-active: #94a3b8;
+  --border-subtle: rgba(226, 232, 240, 0.8);
+  --border-hover: rgba(203, 213, 225, 0.9);
+  --border-active: #6366f1;
 
   --text-primary: #0f172a;
   --text-secondary: #475569;
@@ -20,26 +21,30 @@
 
   --accent-primary: #4f46e5;
   --accent-primary-hover: #4338ca;
-  --accent-glow: rgba(79, 70, 229, 0.12);
+  --accent-glow: rgba(79, 70, 229, 0.15);
+  --accent-cyan: #06b6d4;
+  --accent-purple: #9333ea;
   --accent-success: #10b981;
   --accent-warning: #f59e0b;
   --accent-error: #ef4444;
 
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-card: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.02);
-  --shadow-elevated: 0 20px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.02);
+  --shadow-card: 0 10px 30px -5px rgba(15, 23, 42, 0.06), 0 0 0 1px rgba(226, 232, 240, 0.6);
+  --shadow-elevated: 0 25px 50px -12px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(226, 232, 240, 0.8);
+  --shadow-glow: 0 0 40px -5px rgba(99, 102, 241, 0.2);
 }
 
-/* ─── Theme Overrides ─── */
+/* ─── Gemini Luminous Aurora (Flagship Dark Mode) ─── */
 [data-theme="gemini-aurora"] {
-  --bg-app: #080914;
-  --bg-surface: #0f1026;
-  --bg-card: rgba(18, 20, 48, 0.75);
-  --bg-elevated: rgba(28, 32, 72, 0.85);
-  --bg-input: rgba(10, 12, 30, 0.6);
+  --bg-app: #070810;
+  --bg-surface: #0e0f1d;
+  --bg-card: rgba(15, 17, 35, 0.75);
+  --bg-elevated: rgba(25, 28, 58, 0.8);
+  --bg-input: rgba(10, 12, 26, 0.7);
+  --bg-glass: rgba(18, 20, 42, 0.6);
 
-  --border-subtle: rgba(129, 140, 248, 0.15);
-  --border-hover: rgba(129, 140, 248, 0.3);
+  --border-subtle: rgba(129, 140, 248, 0.14);
+  --border-hover: rgba(129, 140, 248, 0.35);
   --border-active: #818cf8;
 
   --text-primary: #f8fafc;
@@ -49,19 +54,25 @@
 
   --accent-primary: #6366f1;
   --accent-primary-hover: #818cf8;
-  --accent-glow: rgba(99, 102, 241, 0.25);
-  --shadow-card: 0 8px 32px 0 rgba(99, 102, 241, 0.15);
+  --accent-glow: rgba(99, 102, 241, 0.3);
+  --accent-cyan: #38bdf8;
+  --accent-purple: #c084fc;
+  --shadow-card: 0 16px 40px -10px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(129, 140, 248, 0.15);
+  --shadow-elevated: 0 25px 60px -15px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(129, 140, 248, 0.25);
+  --shadow-glow: 0 0 50px -5px rgba(99, 102, 241, 0.35);
 }
 
+/* ─── NVIDIA Cyber Emerald Theme ─── */
 [data-theme="nvidia-cyber"] {
-  --bg-app: #050607;
-  --bg-surface: #0a0d0e;
-  --bg-card: rgba(13, 17, 20, 0.85);
-  --bg-elevated: #131b20;
-  --bg-input: rgba(5, 8, 10, 0.7);
+  --bg-app: #040606;
+  --bg-surface: #090e0c;
+  --bg-card: rgba(10, 17, 14, 0.85);
+  --bg-elevated: #101e18;
+  --bg-input: rgba(5, 10, 8, 0.75);
+  --bg-glass: rgba(12, 24, 18, 0.65);
 
-  --border-subtle: rgba(16, 185, 129, 0.12);
-  --border-hover: rgba(16, 185, 129, 0.28);
+  --border-subtle: rgba(16, 185, 129, 0.15);
+  --border-hover: rgba(16, 185, 129, 0.35);
   --border-active: #10b981;
 
   --text-primary: #f0fdf4;
@@ -71,33 +82,43 @@
 
   --accent-primary: #10b981;
   --accent-primary-hover: #059669;
-  --accent-glow: rgba(16, 185, 129, 0.2);
-  --shadow-card: 0 8px 32px 0 rgba(16, 185, 129, 0.12);
+  --accent-glow: rgba(16, 185, 129, 0.25);
+  --accent-cyan: #2dd4bf;
+  --accent-purple: #10b981;
+  --shadow-card: 0 16px 40px -10px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(16, 185, 129, 0.18);
+  --shadow-elevated: 0 25px 60px -15px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(16, 185, 129, 0.3);
+  --shadow-glow: 0 0 50px -5px rgba(16, 185, 129, 0.3);
 }
 
+/* ─── Deep Obsidian Stealth Theme ─── */
 [data-theme="deep-dark"] {
-  --bg-app: #09090b;
-  --bg-surface: #121215;
-  --bg-card: rgba(20, 20, 25, 0.8);
-  --bg-elevated: #1c1c22;
-  --bg-input: rgba(10, 10, 12, 0.7);
+  --bg-app: #050507;
+  --bg-surface: #0c0c10;
+  --bg-card: rgba(15, 15, 20, 0.85);
+  --bg-elevated: #16161c;
+  --bg-input: rgba(8, 8, 11, 0.8);
+  --bg-glass: rgba(18, 18, 24, 0.7);
 
   --border-subtle: rgba(255, 255, 255, 0.08);
-  --border-hover: rgba(255, 255, 255, 0.16);
-  --border-active: rgba(255, 255, 255, 0.3);
+  --border-hover: rgba(255, 255, 255, 0.2);
+  --border-active: rgba(255, 255, 255, 0.4);
 
   --text-primary: #ffffff;
   --text-secondary: #a1a1aa;
-  --text-tertiary: #52525b;
+  --text-tertiary: #71717a;
   --text-placeholder: #3f3f46;
 
   --accent-primary: #6366f1;
-  --accent-primary-hover: #4f46e5;
-  --accent-glow: rgba(99, 102, 241, 0.15);
-  --shadow-card: 0 8px 32px 0 rgba(0, 0, 0, 0.6);
+  --accent-primary-hover: #818cf8;
+  --accent-glow: rgba(99, 102, 241, 0.2);
+  --accent-cyan: #38bdf8;
+  --accent-purple: #c084fc;
+  --shadow-card: 0 16px 40px -10px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  --shadow-elevated: 0 25px 60px -15px rgba(0, 0, 0, 0.95), 0 0 0 1px rgba(255, 255, 255, 0.15);
+  --shadow-glow: 0 0 50px -5px rgba(99, 102, 241, 0.2);
 }
 
-/* ─── Base Reset & Layout ─── */
+/* ─── Base Styles ─── */
 *,
 *::before,
 *::after {
@@ -107,19 +128,104 @@
 }
 
 html, body {
-  min-height: 100%;
+  min-height: 100vh;
   background-color: var(--bg-app);
   color: var(--text-primary);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  overflow-x: hidden;
 }
 
-/* ─── Custom Scrollbar ─── */
+/* ─── Animated Ambient Background Mesh ─── */
+.ambient-mesh {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+[data-theme="minimal-light"] .ambient-mesh::before {
+  content: '';
+  position: absolute;
+  top: -15%;
+  right: -10%;
+  width: 65vw;
+  height: 65vh;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, rgba(6, 182, 212, 0.05) 50%, transparent 80%);
+  filter: blur(80px);
+}
+
+[data-theme="minimal-light"] .ambient-mesh::after {
+  content: '';
+  position: absolute;
+  bottom: -15%;
+  left: -10%;
+  width: 60vw;
+  height: 60vh;
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.06) 0%, rgba(99, 102, 241, 0.04) 50%, transparent 80%);
+  filter: blur(80px);
+}
+
+[data-theme="gemini-aurora"] .ambient-mesh::before {
+  content: '';
+  position: absolute;
+  top: -20%;
+  left: 10%;
+  width: 75vw;
+  height: 75vh;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.18) 0%, rgba(56, 189, 248, 0.1) 40%, transparent 75%);
+  filter: blur(100px);
+}
+
+[data-theme="gemini-aurora"] .ambient-mesh::after {
+  content: '';
+  position: absolute;
+  bottom: -20%;
+  right: 5%;
+  width: 70vw;
+  height: 70vh;
+  background: radial-gradient(circle, rgba(192, 132, 252, 0.14) 0%, rgba(99, 102, 241, 0.08) 45%, transparent 75%);
+  filter: blur(100px);
+}
+
+[data-theme="nvidia-cyber"] .ambient-mesh::before {
+  content: '';
+  position: absolute;
+  top: -20%;
+  right: 10%;
+  width: 75vw;
+  height: 75vh;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, rgba(45, 212, 191, 0.08) 45%, transparent 75%);
+  filter: blur(100px);
+}
+
+/* ─── Glassmorphism Card ─── */
+.glass-panel {
+  background: var(--bg-card);
+  backdrop-filter: blur(28px) saturate(1.8);
+  -webkit-backdrop-filter: blur(28px) saturate(1.8);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-card);
+}
+
+.glass-panel-elevated {
+  background: var(--bg-elevated);
+  backdrop-filter: blur(36px) saturate(2);
+  -webkit-backdrop-filter: blur(36px) saturate(2);
+  border: 1px solid var(--border-hover);
+  box-shadow: var(--shadow-elevated);
+}
+
+/* ─── Custom Smooth Scrollbar ─── */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -137,25 +243,15 @@ html, body {
 
 /* ─── Mobile Safe Area Insets ─── */
 .safe-top {
-  padding-top: env(safe-area-inset-top, 0px);
+  padding-top: max(env(safe-area-inset-top, 0px), 12px);
 }
 
 .safe-bottom {
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), 16px);
 }
 
-/* ─── Subtle Shimmer Animation ─── */
-@keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
-}
-
-.animate-shimmer {
-  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.08) 50%, transparent 100%);
-  background-size: 200% 100%;
-  animation: shimmer 2s infinite ease-in-out;
+/* ─── Textarea Line Clamping & Selection ─── */
+textarea {
+  user-select: text;
+  -webkit-user-select: text;
 }

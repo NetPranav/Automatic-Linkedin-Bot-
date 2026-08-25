@@ -46,6 +46,13 @@ import {
   TrashIcon,
 } from "./Icons";
 
+const INSPIRATION_STARTERS = [
+  { label: "🚀 Feature / Project Launch", text: "We just launched our new project today! Here is the breakdown of why we built it, the architecture we used, and what we learned along the way:" },
+  { label: "💡 Hard-Won Lesson", text: "3 days ago, our entire pipeline failed in production. It felt frustrating at first, but here is the exact lesson it taught us about scaling:" },
+  { label: "📈 10x Performance Win", text: "We managed to reduce latency by over 60% with one key architectural change. Here is the technical breakdown:" },
+  { label: "🛠️ Tech Architecture", text: "Here is the raw architectural breakdown of our latest stack — why we chose it, what worked, and what we would do differently:" },
+];
+
 export default function Widget() {
   // ─── App Settings & Theme ───
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
@@ -67,10 +74,10 @@ export default function Widget() {
   const [clarificationQuestions, setClarificationQuestions] = useState<ClarificationQuestion[]>([]);
   const [suggestions, setSuggestions] = useState<PostSuggestions | null>(null);
 
-  // ─── Navigation & Views ───
+  // ─── Navigation Tabs ───
   const [activeTab, setActiveTab] = useState<"editor" | "clarify" | "preview" | "suggestions" | "projects">("editor");
 
-  // ─── Processing & Status State ───
+  // ─── Processing & Status ───
   const [isGenerating, setIsGenerating] = useState(false);
   const [isClarifying, setIsClarifying] = useState(false);
   const [generationStage, setGenerationStage] = useState<string | null>(null);
@@ -89,7 +96,7 @@ export default function Widget() {
   const generalFileRef = useRef<HTMLInputElement>(null);
   const editorCardRef = useRef<HTMLDivElement>(null);
 
-  // ─── Load Settings & Projects on Mount ───
+  // ─── Load Settings & Active Draft on Mount ───
   useEffect(() => {
     const loadedSettings = getStoredSettings();
     setSettings(loadedSettings);
@@ -112,12 +119,12 @@ export default function Widget() {
     }
   }, []);
 
-  // Apply theme to document
+  // Sync theme
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", settings.theme);
   }, [settings.theme]);
 
-  // ─── Realtime Auto-Save ───
+  // ─── Autosave ───
   useEffect(() => {
     if (!settings.autoSaveEnabled) return;
     const timeout = setTimeout(() => {
@@ -132,7 +139,6 @@ export default function Widget() {
         visionSummary,
       });
 
-      // Also persist to projects database
       if (rawText.trim() || generatedPostText.trim()) {
         const project: ProjectDraft = {
           id: currentProjectId,
@@ -168,7 +174,7 @@ export default function Widget() {
     settings.autoSaveEnabled,
   ]);
 
-  // ─── Test Backend Health ───
+  // ─── Backend Connectivity Ping ───
   const testBackend = useCallback(async () => {
     try {
       const res = await fetch(`${settings.backendUrl}/health`, { cache: "no-store" });
@@ -184,11 +190,11 @@ export default function Widget() {
 
   useEffect(() => {
     testBackend();
-    const interval = setInterval(testBackend, 12000);
+    const interval = setInterval(testBackend, 10000);
     return () => clearInterval(interval);
   }, [testBackend]);
 
-  // ─── Text Selection for Image Linking ───
+  // ─── Text Selection for Image Context ───
   const handleTextSelect = useCallback(() => {
     const el = textareaRef.current;
     if (!el) return;
@@ -296,7 +302,7 @@ export default function Widget() {
     setTags((prev) => prev.filter((t) => t !== tagToRemove));
   };
 
-  // ─── AI Clarification Flow ───
+  // ─── AI Clarification ───
   const handleTriggerClarify = async () => {
     if (!rawText.trim()) return;
     setIsClarifying(true);
@@ -325,7 +331,7 @@ export default function Widget() {
     );
   };
 
-  // ─── Generate Post (Direct Standalone AI with Fallback) ───
+  // ─── Direct AI Post Generation ───
   const handleGeneratePost = async () => {
     if (!rawText.trim()) return;
     setIsGenerating(true);
@@ -350,7 +356,7 @@ export default function Widget() {
       setVisionSummary(result.visionSummary);
       setActiveTab("preview");
 
-      // Proactively compute post optimization suggestions in background
+      // Generate suggestions in background
       generatePostSuggestions(result.postText, rawText, settings)
         .then((sug) => setSuggestions(sug))
         .catch((err) => console.warn("Suggestions error:", err));
@@ -393,19 +399,22 @@ export default function Widget() {
     setActiveTab(p.generatedPostText ? "preview" : "editor");
   };
 
-  // Collect all image URLs for preview
+  // Collect image URLs
   const allImageUrls = [
     ...textImageLinks.flatMap((l) => l.images.map((i) => i.url)),
     ...generalImages.map((i) => i.url),
   ];
 
   return (
-    <div className="min-h-screen w-full flex flex-col items-center justify-start p-2 sm:p-4 md:p-6 transition-colors duration-300">
+    <div className="min-h-screen w-full flex flex-col items-center justify-start p-3 sm:p-5 md:p-8 relative">
+      {/* Background Animated Ambient Glow */}
+      <div className="ambient-mesh" />
+
       {/* Hidden File Inputs */}
       <input ref={linkFileRef} type="file" accept="image/*" multiple className="hidden" onChange={handleLinkFiles} />
       <input ref={generalFileRef} type="file" accept="image/*" multiple className="hidden" onChange={handleGeneralFiles} />
 
-      {/* Settings Drawer */}
+      {/* Settings Modal */}
       <SettingsDrawer
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
@@ -419,49 +428,34 @@ export default function Widget() {
         isLightMode={isLightMode}
       />
 
-      {/* ─── Top Master Navigation Header ─── */}
-      <div className={`w-full max-w-4xl p-3 md:p-4 rounded-2xl border mb-4 flex flex-wrap items-center justify-between gap-3 backdrop-blur-xl transition-all shadow-sm ${
-        isLightMode
-          ? "bg-white/80 border-slate-200/80 shadow-slate-200/40"
-          : "bg-[#0d0e14]/80 border-white/[0.08] shadow-2xl"
-      }`}>
-        {/* App Title & Status */}
+      {/* ─── Flagship Master Navigation Header ─── */}
+      <div className="w-full max-w-4xl glass-panel p-3.5 sm:p-4 rounded-3xl mb-4 flex flex-wrap items-center justify-between gap-3 relative z-10">
+        {/* Brand & AI Engine Badge */}
         <div className="flex items-center gap-3">
-          <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-white shadow-md ${
-            isLightMode
-              ? "bg-gradient-to-br from-indigo-600 to-blue-600 shadow-indigo-600/20"
-              : "bg-gradient-to-br from-indigo-500 to-cyan-500 shadow-indigo-500/20"
-          }`}>
+          <div className="w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-white shadow-lg bg-gradient-to-tr from-indigo-600 via-indigo-700 to-cyan-500 shadow-indigo-600/30">
             <SparklesIcon className="w-5 h-5" />
           </div>
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
-              <span className={`font-bold text-sm sm:text-base tracking-tight ${isLightMode ? "text-slate-900" : "text-white"}`}>
+              <span className="font-extrabold text-sm sm:text-base tracking-tight text-[var(--text-primary)]">
                 LinkedIn AI Studio
               </span>
-              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
-                syncStatus === "Connected"
-                  ? isLightMode ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                  : isLightMode ? "bg-slate-100 text-slate-600 border-slate-200" : "bg-white/[0.06] text-white/60 border-white/[0.08]"
-              }`}>
-                {syncStatus === "Connected" ? "PC Connected" : "Mobile Direct Mode"}
+              <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-input)] text-[var(--accent-primary)] flex items-center gap-1.5 shadow-sm">
+                <span className={`w-1.5 h-1.5 rounded-full ${syncStatus === "Connected" ? "bg-emerald-500" : "bg-cyan-500 animate-pulse"}`} />
+                {syncStatus === "Connected" ? "PC Connected" : "Standalone Mobile AI"}
               </span>
             </div>
-            <span className={`text-[11px] ${isLightMode ? "text-slate-500" : "text-white/40"}`}>
-              Ultra-fast AI post generation & live preview
+            <span className="text-[11px] text-[var(--text-tertiary)]">
+              Direct Gemini 2.0 & NVIDIA NIM Multi-Model Pipeline
             </span>
           </div>
         </div>
 
         {/* Action Controls */}
-        <div className="flex items-center gap-1.5 sm:gap-2">
+        <div className="flex items-center gap-2">
           <button
             onClick={handleStartNewProject}
-            className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
-              isLightMode
-                ? "bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200"
-                : "bg-white/[0.04] hover:bg-white/[0.08] text-white/80 border-white/[0.08]"
-            }`}
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-2xl text-xs font-bold border border-[var(--border-subtle)] bg-[var(--bg-input)] hover:bg-[var(--border-subtle)] text-[var(--text-primary)] transition-all cursor-pointer shadow-sm"
           >
             <PlusIcon className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">New Post</span>
@@ -469,25 +463,19 @@ export default function Widget() {
 
           <button
             onClick={() => setIsSettingsOpen(true)}
-            className={`p-2 rounded-xl border transition-all ${
-              isLightMode
-                ? "bg-slate-50 hover:bg-slate-100 text-slate-600 border-slate-200"
-                : "bg-white/[0.04] hover:bg-white/[0.08] text-white/80 border-white/[0.08]"
-            }`}
-            title="Settings"
+            className="p-2.5 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-input)] hover:bg-[var(--border-subtle)] text-[var(--text-primary)] transition-all cursor-pointer shadow-sm"
+            title="App Settings"
           >
             <SettingsIcon className="w-4 h-4" />
           </button>
         </div>
       </div>
 
-      {/* ─── Navigation Tabs Bar ─── */}
-      <div className={`w-full max-w-4xl p-1 rounded-2xl border mb-4 flex items-center justify-between gap-1 overflow-x-auto shadow-sm ${
-        isLightMode ? "bg-white border-slate-200" : "bg-[#0d0e14]/80 border-white/[0.08]"
-      }`}>
+      {/* ─── Glowing Segmented Navigation Tabs ─── */}
+      <div className="w-full max-w-4xl p-1.5 rounded-3xl glass-panel mb-5 flex items-center justify-between gap-1 overflow-x-auto relative z-10 shadow-sm">
         {[
-          { id: "editor", label: "Editor & Notes", icon: SparklesIcon },
-          { id: "clarify", label: "AI Interview", icon: HelpCircleIcon, badge: clarificationQuestions.length },
+          { id: "editor", label: "Create & Notes", icon: SparklesIcon },
+          { id: "clarify", label: "AI Clarifier", icon: HelpCircleIcon, badge: clarificationQuestions.length },
           { id: "preview", label: "LinkedIn Mockup", icon: EyeIcon },
           { id: "suggestions", label: "Optimization Lab", icon: LightbulbIcon },
           { id: "projects", label: "Projects & Queue", icon: FolderProjectsIcon, badge: allProjects.length },
@@ -498,21 +486,19 @@ export default function Widget() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`flex-1 min-w-[70px] py-2 px-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all whitespace-nowrap ${
+              className={`flex-1 min-w-[85px] py-2.5 px-3 rounded-2xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all whitespace-nowrap cursor-pointer relative ${
                 isActive
                   ? isLightMode
-                    ? "bg-slate-900 text-white shadow-sm"
-                    : "bg-indigo-600 text-white shadow-lg shadow-indigo-600/30"
-                  : isLightMode
-                    ? "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
-                    : "text-white/50 hover:text-white hover:bg-white/[0.04]"
+                    ? "bg-slate-900 text-white shadow-md"
+                    : "bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-lg shadow-indigo-600/35"
+                  : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-input)]"
               }`}
             >
-              <Icon className="w-3.5 h-3.5 shrink-0" />
-              <span className="text-[11px] sm:text-xs">{tab.label}</span>
+              <Icon className="w-4 h-4 shrink-0" />
+              <span className="text-[11.5px] sm:text-xs">{tab.label}</span>
               {typeof tab.badge === "number" && tab.badge > 0 && (
-                <span className={`w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center ml-0.5 ${
-                  isActive ? "bg-white text-slate-900" : isLightMode ? "bg-slate-200 text-slate-700" : "bg-white/15 text-white"
+                <span className={`w-4 h-4 rounded-full text-[9px] font-extrabold flex items-center justify-center ml-0.5 ${
+                  isActive ? "bg-white text-slate-900" : "bg-[var(--border-subtle)] text-[var(--text-primary)]"
                 }`}>
                   {tab.badge}
                 </span>
@@ -522,31 +508,29 @@ export default function Widget() {
         })}
       </div>
 
-      {/* ─── Live Generation Progress Toast / Banner ─── */}
+      {/* ─── Live Generation Progress Toast ─── */}
       <AnimatePresence>
         {isGenerating && (
           <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className={`w-full max-w-4xl p-4 rounded-2xl border mb-4 flex flex-col gap-2 shadow-xl ${
-              isLightMode
-                ? "bg-indigo-50/90 border-indigo-200 text-indigo-900"
-                : "bg-indigo-950/40 border-indigo-500/30 text-white"
-            }`}
+            initial={{ opacity: 0, y: -10, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.98 }}
+            className="w-full max-w-4xl p-4 sm:p-5 rounded-3xl glass-panel-elevated mb-5 flex flex-col gap-2.5 shadow-2xl relative z-10 border border-indigo-500/30"
           >
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-4 h-4 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin" />
-                <span className="text-xs font-bold">{generationStage || "AI is drafting your post..."}</span>
+              <div className="flex items-center gap-3">
+                <div className="w-5 h-5 rounded-full border-2 border-indigo-500/30 border-t-indigo-500 animate-spin" />
+                <span className="text-xs font-bold text-[var(--text-primary)]">
+                  {generationStage || "AI is drafting your LinkedIn post in real-time..."}
+                </span>
               </div>
-              <span className="text-[11px] opacity-60">Real-time Stream</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-400">
+                Streaming
+              </span>
             </div>
 
             {liveStreamOutput && (
-              <div className={`p-2.5 rounded-xl text-xs font-mono max-h-28 overflow-y-auto leading-relaxed border ${
-                isLightMode ? "bg-white/80 border-indigo-100 text-slate-800" : "bg-black/40 border-white/[0.06] text-white/80"
-              }`}>
+              <div className="p-3.5 rounded-2xl text-xs font-mono max-h-32 overflow-y-auto leading-relaxed border border-[var(--border-subtle)] bg-[var(--bg-input)] text-[var(--text-primary)]">
                 {liveStreamOutput}
               </div>
             )}
@@ -555,103 +539,112 @@ export default function Widget() {
       </AnimatePresence>
 
       {/* ─── Main View Switcher ─── */}
-      <div className="w-full max-w-4xl flex-1 flex flex-col">
-        {/* ─── TAB 1: Editor ─── */}
+      <div className="w-full max-w-4xl flex-1 flex flex-col relative z-10">
+        {/* ─── TAB 1: Editor & Notes ─── */}
         {activeTab === "editor" && (
-          <div
+          <motion.div
             ref={editorCardRef}
-            className={`relative p-4 md:p-6 rounded-2xl border transition-all shadow-sm ${
-              isLightMode
-                ? "bg-white border-slate-200"
-                : "bg-[#0d0e14]/90 border-white/[0.08] shadow-2xl"
-            }`}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="glass-panel p-5 sm:p-7 rounded-3xl relative overflow-hidden transition-all duration-300 shadow-sm"
           >
-            {/* Floating Selection Toolbar */}
+            {/* Luminous Top Line */}
+            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-indigo-500/80 to-transparent" />
+
+            {/* Floating Highlight Selection Toolbar */}
             <AnimatePresence>
               {showToolbar && selectionRange && (
                 <motion.div
                   initial={{ opacity: 0, y: 6, scale: 0.94 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 4, scale: 0.94 }}
-                  className="absolute z-50 flex items-center gap-2 p-1.5 rounded-xl shadow-2xl border bg-slate-900 text-white border-slate-700"
+                  className="absolute z-50 flex items-center gap-2 p-1.5 rounded-2xl shadow-2xl border bg-slate-950 text-white border-white/20 backdrop-blur-2xl"
                   style={{
                     left: `${Math.min(Math.max(toolbarPos.x - 90, 16), 260)}px`,
-                    top: `${toolbarPos.y - 45}px`,
+                    top: `${toolbarPos.y - 48}px`,
                   }}
                 >
                   <button
                     onClick={createTextLink}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-600/30"
                   >
                     <ImageIcon className="w-3.5 h-3.5" />
-                    Attach Images to &quot;{selectionRange.text.slice(0, 18)}...&quot;
+                    Attach Photos to &quot;{selectionRange.text.slice(0, 16)}...&quot;
                   </button>
                 </motion.div>
               )}
             </AnimatePresence>
 
-            {/* Project Title */}
-            <div className="mb-3">
+            {/* Project Title Input */}
+            <div className="mb-4">
               <input
                 type="text"
                 value={projectTitle}
                 onChange={(e) => setProjectTitle(e.target.value)}
-                placeholder="Project Title / Concept..."
-                className={`w-full text-base font-bold outline-none bg-transparent ${
-                  isLightMode ? "text-slate-900 placeholder-slate-300" : "text-white placeholder-white/20"
-                }`}
+                placeholder="Post Topic or Project Name..."
+                className="w-full text-lg font-extrabold outline-none bg-transparent text-[var(--text-primary)] placeholder-[var(--text-placeholder)]"
               />
             </div>
 
+            {/* Inspiration Angle Starters */}
+            <div className="mb-4">
+              <span className="text-[11px] font-bold text-[var(--text-tertiary)] uppercase tracking-wider block mb-2">
+                ✨ Quick Inspiration Angles:
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {INSPIRATION_STARTERS.map((s, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setRawText((prev) => (prev.trim() ? `${prev}\n\n${s.text}` : s.text))}
+                    className="px-3 py-1.5 rounded-xl text-xs font-semibold border border-[var(--border-subtle)] bg-[var(--bg-input)] hover:border-indigo-400 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all cursor-pointer shadow-sm"
+                  >
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* Main Raw Notes Textarea */}
-            <div className="relative mb-4">
+            <div className="relative mb-5">
               <textarea
                 ref={textareaRef}
                 value={rawText}
                 onChange={(e) => setRawText(e.target.value)}
                 onSelect={handleTextSelect}
                 onBlur={() => setTimeout(() => setShowToolbar(false), 250)}
-                placeholder="Write your raw post notes, bullet points, story, or project updates here... (Select text to link specific photos!)"
+                placeholder="Write your unfiltered notes, bullet points, story, metrics, or project milestones... (Select text to link specific photos!)"
                 rows={9}
-                className={`w-full p-4 rounded-xl resize-none text-[15px] leading-relaxed outline-none border transition-all ${
-                  isLightMode
-                    ? "bg-slate-50/70 border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white focus:border-indigo-500"
-                    : "bg-black/30 border-white/[0.08] text-white placeholder-white/25 focus:border-indigo-500/50"
-                }`}
+                className="w-full p-4 sm:p-5 rounded-2xl resize-none text-[15px] leading-relaxed outline-none border border-[var(--border-subtle)] bg-[var(--bg-input)] text-[var(--text-primary)] placeholder-[var(--text-placeholder)] focus:border-indigo-500/80 transition-all shadow-inner"
               />
 
-              <div className="flex items-center justify-between mt-1 text-[11px] px-1">
-                <span className={isLightMode ? "text-slate-400" : "text-white/40"}>
+              <div className="flex items-center justify-between mt-2 text-[11px] px-1 text-[var(--text-tertiary)]">
+                <span>
                   {textImageLinks.length > 0
-                    ? `${textImageLinks.length} contextual image link(s)`
-                    : "Tip: Highlight text to attach related images"}
+                    ? `🔗 ${textImageLinks.length} contextually linked photo(s)`
+                    : "💡 Highlight text to attach related screenshots"}
                 </span>
-                <span className={isLightMode ? "text-slate-400" : "text-white/40"}>
-                  {rawText.length} characters
-                </span>
+                <span className="font-semibold">{rawText.length} chars</span>
               </div>
             </div>
 
             {/* Contextual Linked Images Panel */}
             {textImageLinks.length > 0 && (
-              <div className="mb-4 flex flex-col gap-2">
-                <span className={`text-xs font-semibold ${isLightMode ? "text-slate-700" : "text-white/70"}`}>
+              <div className="mb-5 flex flex-col gap-2.5">
+                <span className="text-xs font-bold text-[var(--text-primary)]">
                   Contextually Linked Images:
                 </span>
                 <div className="flex flex-col gap-2">
                   {textImageLinks.map((link) => (
                     <div
                       key={link.id}
-                      className={`p-3 rounded-xl border flex items-center justify-between gap-3 ${
-                        isLightMode ? "bg-slate-50 border-slate-200" : "bg-white/[0.02] border-white/[0.06]"
-                      }`}
+                      className="p-3.5 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-input)] flex items-center justify-between gap-3 shadow-sm"
                     >
-                      <div className="flex items-center gap-2 min-w-0 flex-1">
-                        <span className={`text-xs italic truncate max-w-[200px] ${isLightMode ? "text-indigo-600 font-medium" : "text-indigo-400 font-medium"}`}>
+                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                        <span className="text-xs italic font-bold text-indigo-500 truncate max-w-[220px]">
                           &ldquo;{link.text}&rdquo;
                         </span>
-                        <span className={`text-[11px] ${isLightMode ? "text-slate-400" : "text-white/40"}`}>
-                          ({link.images.length} images)
+                        <span className="text-[11px] text-[var(--text-tertiary)]">
+                          ({link.images.length} photos)
                         </span>
                       </div>
 
@@ -661,17 +654,15 @@ export default function Widget() {
                             setActiveLinkForUpload(link.id);
                             linkFileRef.current?.click();
                           }}
-                          className={`px-2.5 py-1 rounded-lg text-xs font-medium border ${
-                            isLightMode ? "bg-white text-slate-700 border-slate-200" : "bg-white/10 text-white border-white/10"
-                          }`}
+                          className="px-3 py-1.5 rounded-xl text-xs font-bold border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-primary)] hover:border-indigo-400 cursor-pointer transition-all"
                         >
                           + Add Photo
                         </button>
                         <button
                           onClick={() => setTextImageLinks((p) => p.filter((l) => l.id !== link.id))}
-                          className={`p-1.5 rounded-lg text-rose-500 ${isLightMode ? "hover:bg-rose-50" : "hover:bg-rose-500/10"}`}
+                          className="p-1.5 rounded-xl text-rose-500 hover:bg-rose-500/10 cursor-pointer transition-colors"
                         >
-                          <TrashIcon className="w-3.5 h-3.5" />
+                          <TrashIcon className="w-4 h-4" />
                         </button>
                       </div>
                     </div>
@@ -680,34 +671,30 @@ export default function Widget() {
               </div>
             )}
 
-            {/* General Media Attachments */}
-            <div className="mb-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className={`text-xs font-semibold ${isLightMode ? "text-slate-700" : "text-white/70"}`}>
-                  Post Photos / Screenshots ({generalImages.length}):
+            {/* General Media Gallery Attachments */}
+            <div className="mb-5">
+              <div className="flex items-center justify-between mb-2.5">
+                <span className="text-xs font-bold text-[var(--text-primary)]">
+                  Post Photos / Media ({generalImages.length}):
                 </span>
                 <button
                   onClick={() => generalFileRef.current?.click()}
-                  className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
-                    isLightMode
-                      ? "bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200"
-                      : "bg-white/[0.05] hover:bg-white/[0.08] text-white border-white/[0.08]"
-                  }`}
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-2xl text-xs font-bold border border-[var(--border-subtle)] bg-[var(--bg-input)] hover:border-indigo-400 text-[var(--text-primary)] transition-all cursor-pointer shadow-sm"
                 >
-                  <ImageIcon className="w-3.5 h-3.5" />
+                  <ImageIcon className="w-4 h-4 text-indigo-500" />
                   Attach Media
                 </button>
               </div>
 
               {generalImages.length > 0 && (
-                <div className="flex gap-2 overflow-x-auto pb-1">
+                <div className="flex gap-2.5 overflow-x-auto pb-1">
                   {generalImages.map((img) => (
-                    <div key={img.id} className="relative w-16 h-16 rounded-xl overflow-hidden shrink-0 border border-inherit group">
+                    <div key={img.id} className="relative w-18 h-18 rounded-2xl overflow-hidden shrink-0 border border-[var(--border-subtle)] group shadow-sm">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={img.url} alt={img.name} className="w-full h-full object-cover" />
                       <button
                         onClick={() => setGeneralImages((p) => p.filter((i) => i.id !== img.id))}
-                        className="absolute inset-0 bg-black/60 text-white opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"
+                        className="absolute inset-0 bg-black/70 text-white opacity-0 group-hover:opacity-100 flex items-center justify-center font-bold text-sm transition-opacity"
                       >
                         ✕
                       </button>
@@ -719,49 +706,39 @@ export default function Widget() {
 
             {/* Hashtag Manager */}
             <div className="mb-6">
-              <span className={`text-xs font-semibold block mb-1.5 ${isLightMode ? "text-slate-700" : "text-white/70"}`}>
+              <span className="text-xs font-bold text-[var(--text-primary)] block mb-2">
                 Hashtags ({tags.length}/10):
               </span>
-              <div className={`p-2 rounded-xl border flex flex-wrap items-center gap-1.5 ${
-                isLightMode ? "bg-slate-50/70 border-slate-200" : "bg-black/20 border-white/[0.06]"
-              }`}>
+              <div className="p-2.5 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-input)] flex flex-wrap items-center gap-2">
                 {tags.map((t) => (
                   <span
                     key={t}
-                    className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium ${
-                      isLightMode ? "bg-indigo-100 text-indigo-700" : "bg-indigo-500/20 text-indigo-300"
-                    }`}
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold bg-indigo-500/15 text-indigo-500 border border-indigo-500/20"
                   >
                     #{t}
-                    <button onClick={() => removeTag(t)} className="opacity-50 hover:opacity-100">✕</button>
+                    <button onClick={() => removeTag(t)} className="opacity-60 hover:opacity-100 font-bold">✕</button>
                   </span>
                 ))}
                 <input
                   type="text"
-                  placeholder={tags.length === 0 ? "Type hashtag & press Enter..." : "+ tag"}
+                  placeholder={tags.length === 0 ? "Type tag & hit Enter..." : "+ tag"}
                   value={tagInput}
                   onChange={(e) => setTagInput(e.target.value)}
                   onKeyDown={addTag}
-                  className={`flex-1 min-w-[100px] text-xs outline-none bg-transparent ${
-                    isLightMode ? "text-slate-800 placeholder-slate-400" : "text-white placeholder-white/20"
-                  }`}
+                  className="flex-1 min-w-[120px] text-xs outline-none bg-transparent text-[var(--text-primary)] placeholder-[var(--text-placeholder)]"
                 />
               </div>
             </div>
 
             {/* Master Action Bar */}
-            <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-inherit">
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-[var(--border-subtle)]">
               <button
                 onClick={handleTriggerClarify}
                 disabled={!rawText.trim() || isClarifying}
-                className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-semibold border transition-all ${
-                  isLightMode
-                    ? "bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200"
-                    : "bg-white/[0.05] hover:bg-white/[0.08] text-white border-white/[0.08]"
-                }`}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold border border-[var(--border-subtle)] bg-[var(--bg-input)] hover:border-indigo-400 text-[var(--text-primary)] transition-all cursor-pointer shadow-sm"
               >
                 <HelpCircleIcon className="w-4 h-4 text-indigo-500" />
-                {isClarifying ? "Analyzing..." : "Ask AI to Clarify & Interview"}
+                {isClarifying ? "Analyzing Notes..." : "Ask AI to Clarify & Interview"}
               </button>
 
               <motion.button
@@ -769,17 +746,17 @@ export default function Widget() {
                 whileTap={{ scale: 0.98 }}
                 onClick={handleGeneratePost}
                 disabled={!rawText.trim() || isGenerating}
-                className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-bold text-white shadow-lg transition-all cursor-pointer ${
+                className={`flex items-center gap-2 px-7 py-3 rounded-2xl text-xs font-extrabold text-white shadow-xl shadow-indigo-600/30 transition-all cursor-pointer ${
                   !rawText.trim() || isGenerating
                     ? "opacity-50 cursor-not-allowed bg-slate-500"
-                    : "bg-gradient-to-r from-indigo-600 via-indigo-700 to-blue-600 hover:from-indigo-700 hover:to-blue-700 shadow-indigo-600/25"
+                    : "bg-gradient-to-r from-indigo-600 via-indigo-700 to-cyan-500 hover:from-indigo-700 hover:to-cyan-600"
                 }`}
               >
                 <SparklesIcon className="w-4 h-4" />
-                {isGenerating ? "Generating..." : "Generate LinkedIn Post"}
+                {isGenerating ? "Drafting Post..." : "Generate LinkedIn Post →"}
               </motion.button>
             </div>
-          </div>
+          </motion.div>
         )}
 
         {/* ─── TAB 2: AI Clarification & Questions ─── */}
@@ -794,7 +771,7 @@ export default function Widget() {
           />
         )}
 
-        {/* ─── TAB 3: Realistic LinkedIn Live Mockup ─── */}
+        {/* ─── TAB 3: LinkedIn Live Mockup ─── */}
         {activeTab === "preview" && (
           <div className="flex flex-col gap-4">
             {generatedPostText ? (
@@ -805,13 +782,11 @@ export default function Widget() {
                 isLightMode={isLightMode}
               />
             ) : (
-              <div className={`p-10 rounded-2xl border text-center ${
-                isLightMode ? "bg-white border-slate-200 text-slate-500" : "bg-[#0d0e14]/80 border-white/[0.08] text-white/50"
-              }`}>
-                <p className="text-xs mb-3">No generated post to preview yet.</p>
+              <div className="glass-panel p-12 rounded-3xl text-center flex flex-col items-center justify-center gap-3">
+                <p className="text-xs text-[var(--text-secondary)]">No post generated to preview yet.</p>
                 <button
                   onClick={() => setActiveTab("editor")}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white"
+                  className="px-5 py-2.5 rounded-2xl text-xs font-bold bg-indigo-600 text-white shadow-md shadow-indigo-600/25"
                 >
                   Go to Editor →
                 </button>
@@ -820,7 +795,7 @@ export default function Widget() {
           </div>
         )}
 
-        {/* ─── TAB 4: Post Suggestions & Optimization Lab ─── */}
+        {/* ─── TAB 4: Optimization Lab ─── */}
         {activeTab === "suggestions" && (
           <PostSuggestionsLab
             suggestions={suggestions}
@@ -834,7 +809,6 @@ export default function Widget() {
             }}
             onReplaceCTA={(newCTA) => {
               const lines = generatedPostText.split("\n");
-              // Replace last non-hashtag line with new CTA
               const updated = [...lines, `\n${newCTA}`].join("\n");
               setGeneratedPostText(updated);
             }}

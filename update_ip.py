@@ -1,6 +1,11 @@
 import socket
 import re
 import os
+import sys
+
+# Ensure UTF-8 output on Windows consoles
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 
 def get_ip():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -20,12 +25,12 @@ if not os.path.exists(env_path):
     print("No .env file found. Creating from .env.example if exists...")
     example_path = os.path.join(os.path.dirname(__file__), '.env.example')
     if os.path.exists(example_path):
-        with open(example_path, 'r') as f:
+        with open(example_path, 'r', encoding='utf-8') as f:
             content = f.read()
     else:
         content = "BACKEND_IP=127.0.0.1\n"
 else:
-    with open(env_path, 'r') as f:
+    with open(env_path, 'r', encoding='utf-8', errors='ignore') as f:
         content = f.read()
 
 ip = get_ip()
@@ -36,10 +41,10 @@ if re.search(r'(?m)^BACKEND_IP=.*', content):
 else:
     content += f"\nBACKEND_IP={ip}\n"
 
-with open(env_path, 'w') as f:
+with open(env_path, 'w', encoding='utf-8') as f:
     f.write(content)
 
-print(f"--------------------------------------------------")
-print(f"✅ AUTO-UPDATED BACKEND IP TO: {ip}")
-print(f"   (This ensures your mobile app can connect)")
-print(f"--------------------------------------------------")
+print("--------------------------------------------------")
+print(f"[OK] Auto-Updated Backend IP to: {ip}")
+print("     (This ensures your mobile app can connect)")
+print("--------------------------------------------------")

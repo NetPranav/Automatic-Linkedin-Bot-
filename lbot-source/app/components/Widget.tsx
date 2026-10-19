@@ -124,16 +124,29 @@ const INSPIRATION_PILLS = [
    ═══════════════════════════════════════ */
 const s = {
   // Layout
-  shell: { display: "flex", flexDirection: "column" as const, minHeight: "100vh", background: "#FAFBFE", fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif" },
+  shell: { display: "flex", flexDirection: "column" as const, minHeight: "100vh", background: "#FAFBFE", fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif", paddingBottom: "max(var(--safe-bottom), 0px)" },
 
-  // Header
-  header: { display: "flex", alignItems: "center", justifyContent: "space-between", height: 56, padding: "0 24px", borderBottom: "1px solid #E5E7EB", background: "#FFFFFF", flexShrink: 0 },
-  headerLeft: { display: "flex", alignItems: "center", gap: 10 },
+  // Header (with Safe-Area Inset Top to avoid status bar overlap)
+  header: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    minHeight: 56,
+    paddingTop: "max(var(--safe-top), 0px)",
+    paddingBottom: 0,
+    paddingLeft: "max(12px, var(--safe-left))",
+    paddingRight: "max(12px, var(--safe-right))",
+    borderBottom: "1px solid #E5E7EB",
+    background: "#FFFFFF",
+    flexShrink: 0,
+    gap: 8,
+  },
+  headerLeft: { display: "flex", alignItems: "center", gap: 8, flexShrink: 0 },
   headerLogo: { width: 28, height: 28, borderRadius: 8, background: "linear-gradient(135deg, #4F46E5, #7C3AED)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", flexShrink: 0 },
   headerTitle: { fontSize: 15, fontWeight: 700, color: "#111827", letterSpacing: "-0.01em" },
   headerNav: { display: "flex", alignItems: "center", gap: 2 },
   navBtn: (active: boolean) => ({
-    padding: "6px 14px",
+    padding: "6px 12px",
     fontSize: 13,
     fontWeight: active ? 600 : 500,
     color: active ? "#4F46E5" : "#6B7280",
@@ -142,39 +155,40 @@ const s = {
     borderRadius: 8,
     cursor: "pointer",
     transition: "all 0.15s",
+    whiteSpace: "nowrap" as const,
   }),
-  headerRight: { display: "flex", alignItems: "center", gap: 8 },
+  headerRight: { display: "flex", alignItems: "center", gap: 6, flexShrink: 0 },
   statusDot: (connected: boolean) => ({
     width: 7, height: 7, borderRadius: "50%", background: connected ? "#059669" : "#D97706",
     boxShadow: connected ? "0 0 0 3px rgba(5,150,105,0.15)" : "0 0 0 3px rgba(217,119,6,0.15)",
   }),
   headerBtn: { padding: "6px 8px", background: "transparent", border: "none", borderRadius: 8, cursor: "pointer", color: "#6B7280", display: "flex", alignItems: "center", justifyContent: "center" },
-  newPostBtn: { display: "flex", alignItems: "center", gap: 6, padding: "7px 16px", background: "#4F46E5", color: "#fff", border: "none", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: "pointer", transition: "all 0.15s" },
+  newPostBtn: { display: "flex", alignItems: "center", gap: 5, padding: "6px 14px", background: "#4F46E5", color: "#fff", border: "none", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: "pointer", transition: "all 0.15s", whiteSpace: "nowrap" as const },
 
   // Container
   main: { flex: 1, overflow: "hidden" as const, display: "flex" },
 
   // ── HOME SCREEN ──
   homeContainer: { flex: 1, display: "flex", flexDirection: "column" as const, overflow: "hidden" as const },
-  homeHeader: { padding: "28px 32px 0", display: "flex", flexDirection: "column" as const, gap: 20 },
+  homeHeader: { padding: "20px 16px 0", display: "flex", flexDirection: "column" as const, gap: 16 },
   homeTitle: { fontSize: 22, fontWeight: 700, color: "#111827", letterSpacing: "-0.02em" },
   homeSubtitle: { fontSize: 13, color: "#6B7280", marginTop: 2 },
-  homeStats: { display: "flex", gap: 12 },
-  statCard: { flex: 1, padding: "16px 18px", background: "#fff", border: "1px solid #E5E7EB", borderRadius: 12, display: "flex", flexDirection: "column" as const, gap: 6 },
+  homeStats: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: 10 },
+  statCard: { padding: "14px 16px", background: "#fff", border: "1px solid #E5E7EB", borderRadius: 12, display: "flex", flexDirection: "column" as const, gap: 4 },
   statLabel: { fontSize: 11, fontWeight: 600, color: "#9CA3AF", textTransform: "uppercase" as const, letterSpacing: "0.05em" },
-  statValue: { fontSize: 24, fontWeight: 700, color: "#111827", letterSpacing: "-0.02em" },
-  searchBar: { display: "flex", alignItems: "center", gap: 8, padding: "0 32px", marginTop: 16 },
+  statValue: { fontSize: 22, fontWeight: 700, color: "#111827", letterSpacing: "-0.02em" },
+  searchBar: { display: "flex", alignItems: "center", gap: 8, padding: "0 16px", marginTop: 14 },
   searchInput: { width: "100%", height: 38, padding: "0 12px 0 36px", fontSize: 13, color: "#111827", background: "#F4F6FB", border: "1px solid #E5E7EB", borderRadius: 10, outline: "none", boxSizing: "border-box" as const },
-  filterBtns: { display: "flex", gap: 4, padding: "0 32px", marginTop: 12 },
+  filterBtns: { display: "flex", gap: 4, padding: "0 16px", marginTop: 10, overflowX: "auto" as const },
   filterBtn: (active: boolean) => ({
     padding: "5px 12px", fontSize: 12, fontWeight: active ? 600 : 500,
     color: active ? "#4F46E5" : "#6B7280",
     background: active ? "#EEF2FF" : "transparent",
     border: active ? "1px solid #C7D2FE" : "1px solid transparent",
-    borderRadius: 8, cursor: "pointer", transition: "all 0.15s",
+    borderRadius: 8, cursor: "pointer", transition: "all 0.15s", whiteSpace: "nowrap" as const,
   }),
-  homeGrid: { flex: 1, overflow: "auto" as const, padding: "16px 32px 32px", display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 12, alignContent: "start" as const },
-  draftCard: { padding: "18px 20px", background: "#fff", border: "1px solid #E5E7EB", borderRadius: 12, cursor: "pointer", transition: "all 0.15s", display: "flex", flexDirection: "column" as const, gap: 10 },
+  homeGrid: { flex: 1, overflow: "auto" as const, padding: "14px 16px 32px", display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12, alignContent: "start" as const },
+  draftCard: { padding: "16px 18px", background: "#fff", border: "1px solid #E5E7EB", borderRadius: 12, cursor: "pointer", transition: "all 0.15s", display: "flex", flexDirection: "column" as const, gap: 8 },
   draftTitle: { fontSize: 14, fontWeight: 600, color: "#111827", lineHeight: 1.4 },
   draftPreview: { fontSize: 12, color: "#6B7280", lineHeight: 1.6, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical" as const, overflow: "hidden" as const },
   draftMeta: { display: "flex", justifyContent: "space-between", alignItems: "center" },
@@ -190,39 +204,63 @@ const s = {
     const c = colors[status] || colors.draft;
     return { padding: "2px 8px", fontSize: 10, fontWeight: 600, borderRadius: 6, background: c.bg, color: c.text };
   },
-  emptyState: { display: "flex", flexDirection: "column" as const, alignItems: "center", justifyContent: "center", gap: 16, padding: "80px 0", color: "#9CA3AF" },
+  emptyState: { display: "flex", flexDirection: "column" as const, alignItems: "center", justifyContent: "center", gap: 16, padding: "60px 0", color: "#9CA3AF" },
+
+  // ── MOBILE SWITCHER ──
+  mobileSwitcher: {
+    display: "flex",
+    background: "#F4F6FB",
+    borderRadius: 10,
+    padding: 3,
+    gap: 4,
+    margin: "8px 14px 0",
+  },
+  mobileSwitcherBtn: (active: boolean) => ({
+    flex: 1,
+    padding: "7px 0",
+    fontSize: 12,
+    fontWeight: active ? 600 : 500,
+    color: active ? "#4F46E5" : "#6B7280",
+    background: active ? "#FFFFFF" : "transparent",
+    borderRadius: 8,
+    border: active ? "1px solid #E5E7EB" : "1px solid transparent",
+    boxShadow: active ? "0 1px 3px rgba(0,0,0,0.05)" : "none",
+    cursor: "pointer",
+    transition: "all 0.15s",
+    textAlign: "center" as const,
+  }),
 
   // ── EDITOR ──
   editorContainer: { flex: 1, display: "flex", overflow: "hidden" as const },
-  editorLeft: { flex: 1, display: "flex", flexDirection: "column" as const, overflow: "hidden" as const, borderRight: "1px solid #E5E7EB" },
-  editorToolbar: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 20px", borderBottom: "1px solid #E5E7EB", background: "#fff", flexShrink: 0 },
-  editorToolbarLeft: { display: "flex", alignItems: "center", gap: 8 },
-  editorToolbarRight: { display: "flex", alignItems: "center", gap: 6 },
-  toolBtn: { display: "flex", alignItems: "center", gap: 5, padding: "6px 10px", fontSize: 12, fontWeight: 500, color: "#6B7280", background: "transparent", border: "1px solid #E5E7EB", borderRadius: 8, cursor: "pointer", transition: "all 0.15s" },
-  toolBtnAccent: { display: "flex", alignItems: "center", gap: 5, padding: "6px 14px", fontSize: 12, fontWeight: 600, color: "#fff", background: "#4F46E5", border: "none", borderRadius: 8, cursor: "pointer", transition: "all 0.15s" },
-  editorBody: { flex: 1, overflow: "auto" as const, padding: "24px 20px" },
-  titleInput: { width: "100%", fontSize: 18, fontWeight: 700, color: "#111827", background: "transparent", border: "none", outline: "none", letterSpacing: "-0.02em", marginBottom: 16 },
-  textarea: { width: "100%", minHeight: 240, fontSize: 14, lineHeight: 1.8, color: "#111827", background: "transparent", border: "none", outline: "none", resize: "none" as const },
-  editorFooter: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 20px", borderTop: "1px solid #E5E7EB", background: "#FAFBFE", flexShrink: 0 },
+  editorLeft: { flex: 1, display: "flex", flexDirection: "column" as const, overflow: "hidden" as const, borderRight: "1px solid #E5E7EB", minWidth: 0 },
+  editorToolbar: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", borderBottom: "1px solid #E5E7EB", background: "#fff", flexShrink: 0, flexWrap: "wrap" as const, gap: 8 },
+  editorToolbarLeft: { display: "flex", alignItems: "center", gap: 8, minWidth: 0 },
+  editorToolbarRight: { display: "flex", alignItems: "center", gap: 5, flexWrap: "wrap" as const },
+  toolBtn: { display: "flex", alignItems: "center", gap: 4, padding: "5px 9px", fontSize: 12, fontWeight: 500, color: "#6B7280", background: "transparent", border: "1px solid #E5E7EB", borderRadius: 8, cursor: "pointer", transition: "all 0.15s", whiteSpace: "nowrap" as const },
+  toolBtnAccent: { display: "flex", alignItems: "center", gap: 4, padding: "5px 12px", fontSize: 12, fontWeight: 600, color: "#fff", background: "#4F46E5", border: "none", borderRadius: 8, cursor: "pointer", transition: "all 0.15s", whiteSpace: "nowrap" as const },
+  editorBody: { flex: 1, overflow: "auto" as const, padding: "20px 16px" },
+  titleInput: { width: "100%", fontSize: 18, fontWeight: 700, color: "#111827", background: "transparent", border: "none", outline: "none", letterSpacing: "-0.02em", marginBottom: 14 },
+  textarea: { width: "100%", minHeight: 220, fontSize: 14, lineHeight: 1.8, color: "#111827", background: "transparent", border: "none", outline: "none", resize: "none" as const },
+  editorFooter: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 16px", borderTop: "1px solid #E5E7EB", background: "#FAFBFE", flexShrink: 0 },
   footerMeta: { fontSize: 11, color: "#9CA3AF" },
 
   // Tags
-  tagArea: { display: "flex", flexWrap: "wrap" as const, gap: 6, padding: "12px 20px", borderTop: "1px solid #F4F6FB" },
+  tagArea: { display: "flex", flexWrap: "wrap" as const, gap: 6, padding: "10px 16px", borderTop: "1px solid #F4F6FB" },
   tagChip: { display: "flex", alignItems: "center", gap: 4, padding: "3px 10px", fontSize: 11, fontWeight: 500, color: "#4F46E5", background: "#EEF2FF", border: "1px solid #C7D2FE", borderRadius: 6, cursor: "default" },
   tagRemove: { cursor: "pointer", color: "#4F46E5", opacity: 0.6, background: "transparent", border: "none", fontSize: 14, lineHeight: 1 },
   tagInputField: { padding: "3px 8px", fontSize: 11, color: "#111827", background: "transparent", border: "1px solid #E5E7EB", borderRadius: 6, outline: "none", width: 100 },
 
   // Images row
-  imageRow: { display: "flex", gap: 8, flexWrap: "wrap" as const, padding: "8px 20px" },
+  imageRow: { display: "flex", gap: 8, flexWrap: "wrap" as const, padding: "8px 16px" },
   imageThumbnail: { width: 56, height: 56, borderRadius: 8, objectFit: "cover" as const, border: "1px solid #E5E7EB" },
   imageRemoveBtn: { position: "absolute" as const, top: -6, right: -6, width: 18, height: 18, borderRadius: "50%", background: "#EF4444", color: "#fff", border: "none", cursor: "pointer", fontSize: 10, display: "flex", alignItems: "center", justifyContent: "center" },
 
   // Inspiration pills
-  pillsRow: { display: "flex", gap: 8, flexWrap: "wrap" as const, padding: "12px 20px" },
+  pillsRow: { display: "flex", gap: 8, flexWrap: "wrap" as const, padding: "10px 16px" },
   pill: { padding: "5px 12px", fontSize: 11, fontWeight: 500, color: "#6B7280", background: "#F4F6FB", border: "1px solid #E5E7EB", borderRadius: 20, cursor: "pointer", transition: "all 0.15s", whiteSpace: "nowrap" as const },
 
   // ── RIGHT PANEL ──
-  rightPanel: { width: 480, display: "flex", flexDirection: "column" as const, overflow: "hidden" as const, background: "#fff" },
+  rightPanel: { display: "flex", flexDirection: "column" as const, overflow: "hidden" as const, background: "#fff", minWidth: 0 },
   rightTabs: { display: "flex", borderBottom: "1px solid #E5E7EB", flexShrink: 0 },
   rightTab: (active: boolean) => ({
     flex: 1, padding: "12px 0", fontSize: 12, fontWeight: active ? 600 : 500,
@@ -233,7 +271,7 @@ const s = {
     cursor: "pointer", transition: "all 0.15s",
     textAlign: "center" as const,
   }),
-  rightBody: { flex: 1, overflow: "auto" as const, padding: 20 },
+  rightBody: { flex: 1, overflow: "auto" as const, padding: "16px" },
 
   // ── Preview Card (LinkedIn) ──
   previewCard: { background: "#fff", border: "1px solid #E5E7EB", borderRadius: 12, overflow: "hidden" as const },
@@ -267,15 +305,15 @@ const s = {
   }),
 
   // ── Settings Modal ──
-  overlay: { position: "fixed" as const, inset: 0, zIndex: 50, background: "rgba(0,0,0,0.35)", backdropFilter: "blur(2px)", display: "flex", alignItems: "center", justifyContent: "center" },
-  modal: { width: 520, maxHeight: "80vh", background: "#fff", borderRadius: 16, border: "1px solid #E5E7EB", boxShadow: "0 20px 60px rgba(0,0,0,0.12)", overflow: "auto" as const },
-  modalHeader: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 24px", borderBottom: "1px solid #E5E7EB" },
+  overlay: { position: "fixed" as const, inset: 0, zIndex: 50, background: "rgba(0,0,0,0.35)", backdropFilter: "blur(2px)", display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" },
+  modal: { maxWidth: "min(520px, calc(100vw - 32px))", width: "100%", maxHeight: "85vh", background: "#fff", borderRadius: 16, border: "1px solid #E5E7EB", boxShadow: "0 20px 60px rgba(0,0,0,0.12)", overflow: "auto" as const },
+  modalHeader: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", borderBottom: "1px solid #E5E7EB" },
   modalTitle: { fontSize: 16, fontWeight: 700, color: "#111827" },
-  modalBody: { padding: "20px 24px", display: "flex", flexDirection: "column" as const, gap: 18 },
+  modalBody: { padding: "18px 20px", display: "flex", flexDirection: "column" as const, gap: 16 },
   fieldLabel: { fontSize: 12, fontWeight: 600, color: "#374151", marginBottom: 6 },
   fieldInput: { width: "100%", height: 38, padding: "0 12px", fontSize: 13, color: "#111827", background: "#F4F6FB", border: "1px solid #E5E7EB", borderRadius: 8, outline: "none" },
   fieldSelect: { width: "100%", height: 38, padding: "0 12px", fontSize: 13, color: "#111827", background: "#F4F6FB", border: "1px solid #E5E7EB", borderRadius: 8, outline: "none", cursor: "pointer" },
-  modalFooter: { display: "flex", justifyContent: "flex-end", gap: 8, padding: "14px 24px", borderTop: "1px solid #E5E7EB" },
+  modalFooter: { display: "flex", justifyContent: "flex-end", gap: 8, padding: "14px 20px", borderTop: "1px solid #E5E7EB" },
   modalBtnSecondary: { padding: "7px 16px", fontSize: 13, fontWeight: 500, color: "#6B7280", background: "#F4F6FB", border: "1px solid #E5E7EB", borderRadius: 8, cursor: "pointer" },
   modalBtnPrimary: { padding: "7px 16px", fontSize: 13, fontWeight: 600, color: "#fff", background: "#4F46E5", border: "none", borderRadius: 8, cursor: "pointer" },
 
@@ -304,6 +342,9 @@ export default function Widget() {
 
   // ─── Desktop Editor Dock Tab ───
   const [desktopDockTab, setDesktopDockTab] = useState<"preview" | "optimize" | "clarify">("preview");
+
+  // ─── Mobile View Mode (Write vs Preview) ───
+  const [mobileTab, setMobileTab] = useState<"write" | "preview">("write");
 
   // ─── Import Modal ───
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
@@ -468,6 +509,7 @@ export default function Widget() {
     setClarificationQuestions(p.clarificationQuestions || []);
     setSuggestions(p.suggestions || null); setCurrentStatus(p.status || "draft");
     setActiveView("editor");
+    setMobileTab(p.generatedPostText ? "preview" : "write");
   };
 
   // ─── Delete ───
@@ -492,6 +534,7 @@ export default function Widget() {
     if (!rawText.trim()) return;
     setIsClarifying(true);
     setDesktopDockTab("clarify");
+    setMobileTab("preview");
     try {
       const qList = await generateClarifyingQuestions(rawText, settings);
       setClarificationQuestions(qList);
@@ -513,6 +556,7 @@ export default function Widget() {
     if (!rawText.trim()) return;
     setIsGenerating(true); setGenerationStage("Drafting..."); setLiveStreamOutput("");
     setDesktopDockTab("preview");
+    setMobileTab("preview");
     try {
       const result = await generatePostDirect({
         rawText, tags, imageLinks: textImageLinks, generalImages,
@@ -570,20 +614,45 @@ export default function Widget() {
       {/* ── Hidden file input ── */}
       <input ref={generalFileRef} type="file" accept="image/*" multiple style={{ display: "none" }} onChange={handleGeneralFiles} />
 
-      {/* ═══ GLOBAL STYLE (keyframes) ═══ */}
+      {/* ═══ GLOBAL STYLE (keyframes & responsive rules) ═══ */}
       <style>{`
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
         .fade-in { animation: fadeIn 0.2s ease-out; }
         .hover-lift:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.06); border-color: #D1D5DB !important; }
         .hover-accent:hover { background: #EEF2FF !important; color: #4F46E5 !important; }
+
+        @media (min-width: 900px) {
+          .editor-split-container { display: flex !important; }
+          .editor-pane-left { display: flex !important; flex: 1 1 0% !important; border-right: 1px solid #E5E7EB !important; min-width: 0 !important; }
+          .editor-pane-right { display: flex !important; width: 480px !important; flex-shrink: 0 !important; min-width: 0 !important; }
+          .mobile-mode-switcher { display: none !important; }
+          .header-full-title { display: inline !important; }
+          .header-short-title { display: none !important; }
+          .header-status-text { display: inline !important; }
+        }
+
+        @media (max-width: 899px) {
+          .editor-split-container { display: flex !important; flex-direction: column !important; }
+          .mobile-mode-switcher { display: flex !important; }
+          .editor-pane-left.mobile-hidden,
+          .editor-pane-right.mobile-hidden { display: none !important; }
+          .editor-pane-left { flex: 1 1 0% !important; width: 100% !important; border-right: none !important; min-width: 0 !important; }
+          .editor-pane-right { flex: 1 1 0% !important; width: 100% !important; border-left: none !important; min-width: 0 !important; }
+          .header-full-title { display: none !important; }
+          .header-short-title { display: inline !important; }
+          .header-status-text { display: none !important; }
+        }
       `}</style>
 
       {/* ═══ HEADER ═══ */}
       <header style={s.header}>
         <div style={s.headerLeft}>
           <div style={s.headerLogo}><IconLinkedIn className="w-4 h-4" /></div>
-          <span style={s.headerTitle}>LinkedIn AI Studio</span>
+          <span style={s.headerTitle}>
+            <span className="header-full-title">LinkedIn AI Studio</span>
+            <span className="header-short-title">LinkedIn AI</span>
+          </span>
         </div>
 
         <nav style={s.headerNav}>
@@ -592,9 +661,9 @@ export default function Widget() {
         </nav>
 
         <div style={s.headerRight}>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, marginRight: 8 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
             <div style={s.statusDot(isConnected)} />
-            <span style={{ fontSize: 11, fontWeight: 500, color: isConnected ? "#059669" : "#D97706" }}>
+            <span className="header-status-text" style={{ fontSize: 11, fontWeight: 500, color: isConnected ? "#059669" : "#D97706" }}>
               {isConnected ? "Connected" : syncStatus}
             </span>
           </div>
@@ -602,7 +671,9 @@ export default function Widget() {
             <IconSettings className="w-4 h-4" />
           </button>
           <button style={s.newPostBtn} onClick={handleStartNewPost} onMouseOver={(e) => (e.currentTarget.style.background = "#4338CA")} onMouseOut={(e) => (e.currentTarget.style.background = "#4F46E5")}>
-            <IconPlus className="w-3.5 h-3.5" /> New Post
+            <IconPlus className="w-3.5 h-3.5" />
+            <span className="header-full-title">New Post</span>
+            <span className="header-short-title">New</span>
           </button>
         </div>
       </header>
@@ -726,9 +797,25 @@ export default function Widget() {
             EDITOR VIEW (Split: Left Editor + Right Panel)
             ═══════════════════════════════════════ */}
         {activeView === "editor" && (
-          <div style={s.editorContainer} className="fade-in">
+          <div style={s.editorContainer} className="editor-split-container fade-in">
+            {/* ── Mobile Mode Segmented Switcher ── */}
+            <div className="mobile-mode-switcher" style={s.mobileSwitcher}>
+              <button
+                style={s.mobileSwitcherBtn(mobileTab === "write")}
+                onClick={() => setMobileTab("write")}
+              >
+                ✍️ Write & Notes
+              </button>
+              <button
+                style={s.mobileSwitcherBtn(mobileTab === "preview")}
+                onClick={() => setMobileTab("preview")}
+              >
+                👁️ Preview & AI {generatedPostText ? "✓" : ""}
+              </button>
+            </div>
+
             {/* ── LEFT: Editor ── */}
-            <div style={s.editorLeft}>
+            <div style={s.editorLeft} className={`editor-pane-left ${mobileTab !== "write" ? "mobile-hidden" : ""}`}>
               {/* Toolbar */}
               <div style={s.editorToolbar}>
                 <div style={s.editorToolbarLeft}>
@@ -835,7 +922,7 @@ export default function Widget() {
             </div>
 
             {/* ── RIGHT: Preview / Optimize / Clarify Panel ── */}
-            <div style={s.rightPanel}>
+            <div style={s.rightPanel} className={`editor-pane-right ${mobileTab !== "preview" ? "mobile-hidden" : ""}`}>
               <div style={s.rightTabs}>
                 <button style={s.rightTab(desktopDockTab === "preview")} onClick={() => setDesktopDockTab("preview")}>
                   <span style={{ display: "inline-flex", marginRight: 4 }}><IconEye className="w-3 h-3" /></span> Preview

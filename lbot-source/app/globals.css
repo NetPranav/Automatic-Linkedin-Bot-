@@ -53,7 +53,18 @@
   --radius-lg: 14px;
   --radius-xl: 18px;
   --radius-full: 9999px;
+  /* Safe Area Insets for Mobile Devices & Status Bar */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
 }
+
+/* Safe Area Utilities */
+.safe-pt { padding-top: max(var(--safe-top), 0px); }
+.safe-pb { padding-bottom: max(var(--safe-bottom), 0px); }
+.safe-pl { padding-left: max(var(--safe-left), 0px); }
+.safe-pr { padding-right: max(var(--safe-right), 0px); }
 
 /* ═══ Reset & Base ═══ */
 *, *::before, *::after {

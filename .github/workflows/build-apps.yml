@@ -59,22 +59,24 @@ jobs:
 
       - name: Create or Update GitHub Release (Direct Download)
         uses: softprops/action-gh-release@v2
-        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch'
         with:
           tag_name: mobile-latest
           name: "LinkedIn AI Studio - Latest Mobile Build"
+          make_latest: "true"
           body: |
             ## 📱 LinkedIn AI Studio Mobile App (Direct Download)
             
             This is the latest automated build of the mobile app.
             
-            ### ✨ Features Included:
+            ### ✨ Recent Improvements:
+            - **Top Mobile Status Bar Safe Area**: Content no longer overlaps with the Android status bar, camera notch, or punch hole.
+            - **Full Mobile & Desktop Responsiveness**: Responsive Write / Preview segmented switcher on mobile devices, adaptive stats grid, touch-friendly tap targets, and non-clipping header.
             - **100% Standalone AI Generation**: Direct Google Gemini & NVIDIA NIM support on mobile (no PC connection required).
             - **AI Clarification & Interview**: Proactive questions to extract viral hooks and quantifiable metrics.
             - **Optimization Lab**: 1-tap hook switcher, CTA enhancers, tone morpher, and virality breakdown.
             - **Realistic LinkedIn Mockup**: Live feed preview card with image carousel and 1-tap copy/share.
             - **Projects & Queue Manager**: Auto-saved drafts and sending queue.
-            - **Minimal Classic White & Aurora/Cyber Themes**.
             
             ### ⬇️ Download:
             Download `LinkedIn-AI-Studio-Mobile.apk` directly on your Android phone and install.
